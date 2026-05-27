@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="EKG Träning">
+  <meta name="theme-color" content="#ffffff">
+  <title>EKG Träning</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <style>
+    /* ── Reset & base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f8f8f6;
+      --surface: #ffffff;
+      --border: #e0e0dc;
+      --text: #1a1a1a;
+      --text-muted: #6b6b6b;
+      --accent: #2c5282;
+      --accent-light: #ebf0fa;
+      --success: #276749;
+      --success-light: #e6f4ed;
+      --error: #9b2335;
+      --warning: #b45309;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── App shell ── */
+    #app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .screen {
+      display: none;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .screen.active { display: flex; }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+    .header h1 {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+    .btn-back {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      color: var(--accent);
+      font-size: 24px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .header-badge {
+      margin-left: auto;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* ── Home screen ── */
+    #home {
+      padding: 40px 24px 32px;
+      gap: 0;
+    }
+    .home-logo {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .home-logo svg { width: 64px; height: 64px; }
+    .home-logo h1 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-top: 12px;
+    }
+    .home-logo p {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .main-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .menu-btn {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s ease;
+      box-shadow: var(--shadow);
+      text-decoration: none;
+      color: var(--text);
+    }
+    .menu-btn:active { transform: scale(0.98); background: var(--accent-light); }
+    .menu-btn-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 24px;
+    }
+    .menu-btn-icon.blue { background: var(--accent-light); }
+    .menu-btn-icon.green { background: var(--success-light); }
+    .menu-btn-icon.amber { background: #fef3c7; }
+    .menu-btn-icon.purple { background: #f3e8ff; }
+    .menu-btn-text { flex: 1; }
+    .menu-btn-text strong {
+      display: block;
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+    }
+    .menu-btn-text span {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      display: block;
+    }
+    .menu-btn-arrow { color: var(--border); font-size: 20px; }
+
+    /* ── Training / Test screen ── */
+    .practice-screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .progress-bar-wrap {
+      padding: 0 20px 12px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .progress-bar-wrap .step-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .progress-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+
+    /* ── Body SVG container ── */
+    .body-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .body-svg {
+      width: 100%;
+      max-width: 360px;
+      max-height: calc(100vh - 280px);
+      touch-action: none;
+      display: block;
+    }
+
+    /* ── Electrode targets ── */
+    .electrode-target {
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .electrode-target:active { opacity: 0.7; }
+
+    .electrode-pad {
+      fill: #e8ecf0;
+      stroke: #b0bac4;
+      stroke-width: 1.5;
+      transition: fill 0.2s, stroke 0.2s;
+    }
+    .electrode-pad.placed-correct {
+      fill: #dcf5e7;
+      stroke: #4caf82;
+    }
+    .electrode-pad.placed-wrong {
+      fill: #fde8e8;
+      stroke: #e05c5c;
+      animation: shake 0.3s ease;
+    }
+    .electrode-pad.highlight {
+      fill: #dbeafe;
+      stroke: #3b82f6;
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-3px); }
+      75% { transform: translateX(3px); }
+    }
+
+    /* ── Instruction panel ── */
+    .instruction-panel {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 16px 20px;
+    }
+    .instruction-card {
+      background: var(--accent-light);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .instruction-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 3px;
+    }
+    .instruction-text { flex: 1; }
+    .instruction-text .lead-name {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--accent);
+    }
+    .instruction-text .lead-desc {
+      font-size: 15px;
+      font-weight: 500;
+      margin-top: 2px;
+      line-height: 1.4;
+    }
+    .instruction-text .lead-hint {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    /* Test mode hint */
+    .test-hint {
+      background: #fff8e6;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 14px;
+      color: var(--warning);
+      text-align: center;
+    }
+
+    /* ── Result panel ── */
+    .result-panel {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 20px;
+      gap: 16px;
+    }
+    .result-panel.visible { display: flex; }
+    .result-icon { font-size: 56px; line-height: 1; }
+    .result-title { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+    .result-subtitle { font-size: 15px; color: var(--text-muted); text-align: center; }
+    .result-score {
+      font-size: 40px;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: -1px;
+    }
+    .btn-primary {
+      width: 100%;
+      padding: 16px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      letter-spacing: -0.2px;
+    }
+    .btn-primary:active { opacity: 0.85; }
+    .btn-secondary {
+      width: 100%;
+      padding: 16px;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-secondary:active { background: var(--accent-light); }
+
+    /* ── Achievements screen ── */
+    #achievements {
+      padding: 24px 20px;
+      gap: 12px;
+      overflow-y: auto;
+    }
+    .achievement-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: var(--shadow);
+    }
+    .achievement-icon { font-size: 36px; flex-shrink: 0; }
+    .achievement-info { flex: 1; }
+    .achievement-info strong { font-size: 16px; font-weight: 600; display: block; }
+    .achievement-info span { font-size: 13px; color: var(--text-muted); margin-top: 2px; display: block; }
+    .achievement-locked { opacity: 0.45; filter: grayscale(1); }
+    .achievement-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: var(--success-light);
+      color: var(--success);
+    }
+    .achievement-badge.locked {
+      background: var(--border);
+      color: var(--text-muted);
+    }
+
+    /* ── Film screen ── */
+    #film-screen {
+      padding: 24px 20px;
+      gap: 16px;
+    }
+    .film-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      text-decoration: none;
+      color: var(--text);
+      display: block;
+      transition: transform 0.15s;
+    }
+    .film-card:active { transform: scale(0.98); }
+    .film-thumb {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #1a1a2e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 56px;
+    }
+    .film-info { padding: 16px; }
+    .film-info strong { font-size: 16px; font-weight: 600; display: block; }
+    .film-info span { font-size: 13px; color: var(--text-muted); margin-top: 4px; display: block; }
+    .film-note {
+      background: var(--accent-light);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 14px;
+      color: var(--accent);
+      line-height: 1.5;
+    }
+
+    /* ── Responsive ── */
+    @media (min-height: 700px) {
+      .body-svg { max-height: calc(100vh - 260px); }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HOME -->
+  <div id="home" class="screen active">
+    <div class="home-logo">
+      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="64" height="64" rx="16" fill="#2c5282"/>
+        <polyline points="8,32 18,32 22,18 28,46 34,24 38,38 44,32 56,32"
+          stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+      <h1>EKG Träning</h1>
+      <p>Elektrodplacering för sjuksköterskor</p>
+    </div>
+    <div class="main-menu">
+      <button class="menu-btn" onclick="startTraining()">
+        <div class="menu-btn-icon blue">📚</div>
+        <div class="menu-btn-text">
+          <strong>Träning</strong>
+          <span>Guidad elektrodplacering</span>
+        </div>
+        <span class="menu-btn-arrow">›</span>
+      </button>
+      <button class="menu-btn" onclick="startTest()">
+        <div class="menu-btn-icon green">✏️</div>
+        <div class="menu-btn-text">
+          <strong>Test</strong>
+          <span>Testa dina kunskaper</span>
+        </div>
+        <span class="menu-btn-arrow">›</span>
+      </button>
+      <button class="menu-btn" onclick="showFilm()">
+        <div class="menu-btn-icon amber">🎬</div>
+        <div class="menu-btn-text">
+          <strong>Film vårdhandboken</strong>
+          <span>Se instruktionsfilm</span>
+        </div>
+        <span class="menu-btn-arrow">›</span>
+      </button>
+      <button class="menu-btn" onclick="showAchievements()">
+        <div class="menu-btn-icon purple">🏆</div>
+        <div class="menu-btn-text">
+          <strong>Achievements</strong>
+          <span>Dina resultat och märken</span>
+        </div>
+        <span class="menu-btn-arrow">›</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- TRAINING -->
+  <div id="training-screen" class="screen">
+    <div class="header">
+      <button class="btn-back" onclick="goHome()">‹</button>
+      <h1>Träning</h1>
+      <span class="header-badge" id="train-counter">1 / 10</span>
+    </div>
+    <div class="practice-screen">
+      <div class="progress-bar-wrap">
+        <div class="step-label" id="train-step-label">Placera elektrod 1 av 10</div>
+        <div class="progress-bar"><div class="progress-fill" id="train-progress" style="width:10%"></div></div>
+      </div>
+      <div class="body-container">
+        <svg id="body-svg-train" class="body-svg" viewBox="0 0 320 520" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+      <div class="instruction-panel" id="train-instruction">
+        <div class="instruction-card" id="train-card">
+          <div class="instruction-dot" id="train-dot"></div>
+          <div class="instruction-text">
+            <div class="lead-name" id="train-lead-name">—</div>
+            <div class="lead-desc" id="train-lead-desc">—</div>
+            <div class="lead-hint" id="train-lead-hint"></div>
+          </div>
+        </div>
+      </div>
+      <div class="result-panel" id="train-result">
+        <div class="result-icon">🎉</div>
+        <div class="result-title">Bra jobbat!</div>
+        <div class="result-subtitle">Du har placerat alla elektroder korrekt i träningsläget.</div>
+        <button class="btn-primary" onclick="startTraining()">Träna igen</button>
+        <button class="btn-secondary" onclick="goHome()">Hem</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEST -->
+  <div id="test-screen" class="screen">
+    <div class="header">
+      <button class="btn-back" onclick="goHome()">‹</button>
+      <h1>Test</h1>
+      <span class="header-badge" id="test-counter">0 / 10</span>
+    </div>
+    <div class="practice-screen">
+      <div class="progress-bar-wrap">
+        <div class="step-label" id="test-step-label">Placera alla 10 elektroder</div>
+        <div class="progress-bar"><div class="progress-fill" id="test-progress" style="width:0%"></div></div>
+      </div>
+      <div class="body-container">
+        <svg id="body-svg-test" class="body-svg" viewBox="0 0 320 520" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+      <div class="instruction-panel">
+        <div class="test-hint">Tryck på rätt ställen för att placera elektroderna — ingen ledtråd ges.</div>
+      </div>
+      <div class="result-panel" id="test-result">
+        <div class="result-icon" id="test-result-icon">🏆</div>
+        <div class="result-title" id="test-result-title">Resultat</div>
+        <div class="result-score" id="test-result-score">10/10</div>
+        <div class="result-subtitle" id="test-result-sub">Alla elektroder placerade korrekt!</div>
+        <button class="btn-primary" onclick="startTest()">Testa igen</button>
+        <button class="btn-secondary" onclick="goHome()">Hem</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILM -->
+  <div id="film-screen" class="screen">
+    <div class="header">
+      <button class="btn-back" onclick="goHome()">‹</button>
+      <h1>Film vårdhandboken</h1>
+    </div>
+    <div style="padding:24px 20px; display:flex; flex-direction:column; gap:16px;">
+      <a class="film-card" href="https://qcnl.tv/p/VMaD9Shpk6iD_4eqeskRqw" target="_blank" rel="noopener">
+        <div class="film-thumb">▶️</div>
+        <div class="film-info">
+          <strong>EKG – Instruktionsfilm</strong>
+          <span>Vårdhandboken — Elektrodplacering vid 12-avlednings-EKG</span>
+        </div>
+      </a>
+      <div class="film-note">
+        Filmen öppnas i din webbläsare. Internetanslutning krävs.
+      </div>
+    </div>
+  </div>
+
+  <!-- ACHIEVEMENTS -->
+  <div id="achievements-screen" class="screen">
+    <div class="header">
+      <button class="btn-back" onclick="goHome()">‹</button>
+      <h1>Achievements</h1>
+    </div>
+    <div style="padding:24px 20px; display:flex; flex-direction:column; gap:12px; overflow-y:auto;" id="achievements-list">
+    </div>
+  </div>
+
+</div><!-- #app -->
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   EKG APP — DATA
+═══════════════════════════════════════════════════════ */
+
+/* All 10 electrodes in placement order */
+const ELECTRODES = [
+  { id: 'RA', label: 'Höger arm (RA)', color: '#e53e3e', desc: 'Handleden, höger arm', hint: 'Röd elektrod — placeras på insidan av höger handled', x: 52, y: 190 },
+  { id: 'LA', label: 'Vänster arm (LA)', color: '#d69e2e', desc: 'Handleden, vänster arm', hint: 'Gul elektrod — placeras på insidan av vänster handled', x: 268, y: 190 },
+  { id: 'RL', label: 'Höger ben (RL)', color: '#1a202c', desc: 'Vristen, höger ben', hint: 'Svart elektrod — jordelektrod, placeras på insidan av höger vrist', x: 123, y: 456 },
+  { id: 'LL', label: 'Vänster ben (LL)', color: '#38a169', desc: 'Vristen, vänster ben', hint: 'Grön elektrod — placeras på insidan av vänster vrist', x: 197, y: 456 },
+  { id: 'V1', label: 'V1', color: '#e53e3e', desc: '4:e revbensmellanrummet, höger om bröstbenet', hint: 'Parasternalt höger, 4:e ICS', x: 138, y: 212 },
+  { id: 'V2', label: 'V2', color: '#d69e2e', desc: '4:e revbensmellanrummet, vänster om bröstbenet', hint: 'Parasternalt vänster, 4:e ICS', x: 182, y: 212 },
+  { id: 'V3', label: 'V3', color: '#38a169', desc: 'Mellan V2 och V4', hint: 'Diagonalt mellan V2 och V4', x: 196, y: 232 },
+  { id: 'V4', label: 'V4', color: '#744210', desc: '5:e revbensmellanrummet, midklavikulärlinjen', hint: 'Ungefär vid bröstvårtan, 5:e ICS', x: 200, y: 252 },
+  { id: 'V5', label: 'V5', color: '#1a202c', desc: 'Anteriora axillarlinjen, samma nivå som V4', hint: 'Samma höjd som V4, mot armhålan', x: 214, y: 255 },
+  { id: 'V6', label: 'V6', color: '#553c9a', desc: 'Mediala axillarlinjen, samma nivå som V4–V5', hint: 'Mitt i armhålan, samma höjd som V4 och V5', x: 228, y: 258 },
+];
+
+/* ═══════════════════════════════════════════════════════
+   SVG BODY BUILDER
+═══════════════════════════════════════════════════════ */
+
+function buildBody(svgEl, mode) {
+  const ribLines = [
+    [153,140, 107,158, 167,140, 213,158],
+    [145,157,  91,175, 175,157, 229,175],
+    [135,174,  77,192, 185,174, 243,192],
+    [128,191,  68,209, 192,191, 252,209],
+    [120,208,  62,226, 200,208, 258,226],
+    [116,225,  68,243, 204,225, 252,243],
+  ].map(([xl,yl,x2l,y2l, xr,yr,x2r,y2r]) =>
+    `<path d="M${xl},${yl} Q${(xl+x2l)/2},${yl+8} ${x2l},${y2l}" stroke="#bfbdb5" stroke-width="4" fill="none" stroke-linecap="round"/>
+     <path d="M${xr},${yr} Q${(xr+x2r)/2},${yr+8} ${x2r},${y2r}" stroke="#bfbdb5" stroke-width="4" fill="none" stroke-linecap="round"/>`
+  ).join('');
+
+  const electrodesHtml = ELECTRODES.map(e => {
+    const isChest = e.id.startsWith('V');
+    const r = isChest ? 11 : 14;
+    const fs = isChest ? 9 : 10;
+    return `<g class="electrode-target" id="pad-${e.id}-${mode}">
+      <circle cx="${e.x}" cy="${e.y}" r="${r}" class="electrode-pad" id="circle-${e.id}-${mode}"/>
+      <text x="${e.x}" y="${e.y}" text-anchor="middle" dominant-baseline="middle"
+        font-size="${fs}" font-weight="700" font-family="system-ui,sans-serif"
+        fill="#4a5568" pointer-events="none">${e.id}</text>
+    </g>`;
+  }).join('');
+
+  svgEl.innerHTML = `
+    <!-- Legs -->
+    <rect x="100" y="340" width="46" height="130" rx="10" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
+    <rect x="174" y="340" width="46" height="130" rx="10" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
+    <!-- Arms -->
+    <rect x="30" y="128" width="36" height="114" rx="10" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
+    <rect x="254" y="128" width="36" height="114" rx="10" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
+    <!-- Torso -->
+    <rect x="80" y="100" width="160" height="250" rx="22" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
+    <!-- Shoulder fill -->
+    <rect x="62" y="118" width="196" height="44" rx="16" fill="#f2d9c8" stroke="none"/>
+    <!-- Neck -->
+    <rect x="136" y="68" width="48" height="44" rx="8" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
+    <!-- Head -->
+    <ellipse cx="160" cy="50" rx="34" ry="36" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
+    <!-- Sternum -->
+    <rect x="153" y="128" width="14" height="122" rx="4" fill="#d0cfc8" stroke="#aaa9a0" stroke-width="1"/>
+    <!-- Ribs -->
+    ${ribLines}
+    <!-- Costal margin -->
+    <path d="M104,265 Q130,312 160,322 Q190,312 216,265" stroke="#bfbdb5" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <!-- Electrodes -->
+    ${electrodesHtml}
+  `;
+
+  svgEl.querySelectorAll('.electrode-target').forEach(g => {
+    const eid = g.id.replace(`pad-`, '').replace(`-${mode}`, '');
+    g.addEventListener('click', () => handleElectrodeTap(eid, mode));
+    g.addEventListener('touchend', ev => { ev.preventDefault(); handleElectrodeTap(eid, mode); });
+  });
+}
+
+/* ═══════════════════════════════════════════════════════
+   TRAINING MODE
+═══════════════════════════════════════════════════════ */
+
+let trainStep = 0;
+let trainPlaced = [];
+
+function startTraining() {
+  trainStep = 0;
+  trainPlaced = [];
+  showScreen('training-screen');
+  document.getElementById('train-instruction').style.display = '';
+  document.getElementById('train-result').classList.remove('visible');
+  buildBody(document.getElementById('body-svg-train'), 'train');
+  updateTrainUI();
+}
+
+function updateTrainUI() {
+  if (trainStep >= ELECTRODES.length) {
+    // All done
+    document.getElementById('train-instruction').style.display = 'none';
+    document.getElementById('train-result').classList.add('visible');
+    saveAchievement('training_complete');
+    return;
+  }
+  const e = ELECTRODES[trainStep];
+  const pct = Math.round((trainStep / ELECTRODES.length) * 100);
+
+  document.getElementById('train-counter').textContent = `${trainStep + 1} / ${ELECTRODES.length}`;
+  document.getElementById('train-step-label').textContent = `Placera elektrod ${trainStep + 1} av ${ELECTRODES.length}`;
+  document.getElementById('train-progress').style.width = pct + '%';
+
+  document.getElementById('train-lead-name').textContent = e.label;
+  document.getElementById('train-lead-desc').textContent = e.desc;
+  document.getElementById('train-lead-hint').textContent = e.hint;
+  document.getElementById('train-dot').style.background = e.color;
+
+  /* Highlight current target */
+  ELECTRODES.forEach((ed, i) => {
+    const circle = document.getElementById(`circle-${ed.id}-train`);
+    if (!circle) return;
+    if (trainPlaced.includes(ed.id)) {
+      circle.className.baseVal = 'electrode-pad placed-correct';
+    } else if (i === trainStep) {
+      circle.className.baseVal = 'electrode-pad highlight';
+    } else {
+      circle.className.baseVal = 'electrode-pad';
+    }
+  });
+}
+
+function handleElectrodeTap(id, mode) {
+  if (mode === 'train') {
+    const current = ELECTRODES[trainStep];
+    if (!current) return;
+    const circle = document.getElementById(`circle-${id}-train`);
+    if (id === current.id) {
+      trainPlaced.push(id);
+      circle.className.baseVal = 'electrode-pad placed-correct';
+      trainStep++;
+      setTimeout(updateTrainUI, 300);
+    } else {
+      circle.className.baseVal = 'electrode-pad placed-wrong';
+      setTimeout(() => {
+        if (!trainPlaced.includes(id)) circle.className.baseVal = 'electrode-pad';
+      }, 600);
+    }
+  } else if (mode === 'test') {
+    handleTestTap(id);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   TEST MODE
+═══════════════════════════════════════════════════════ */
+
+let testPlaced = [];
+let testCorrect = 0;
+let testWrong = 0;
+let testOrder = [];
+let testCurrentIdx = 0;
+
+function startTest() {
+  testPlaced = [];
+  testCorrect = 0;
+  testWrong = 0;
+  testCurrentIdx = 0;
+  /* Randomize order */
+  testOrder = [...ELECTRODES].sort(() => Math.random() - 0.5);
+
+  showScreen('test-screen');
+  document.querySelector('#test-screen .instruction-panel').style.display = '';
+  document.getElementById('test-result').classList.remove('visible');
+  buildBody(document.getElementById('body-svg-test'), 'test');
+  updateTestUI();
+}
+
+function updateTestUI() {
+  const placed = testPlaced.length;
+  const pct = Math.round((placed / ELECTRODES.length) * 100);
+  document.getElementById('test-counter').textContent = `${placed} / ${ELECTRODES.length}`;
+  document.getElementById('test-step-label').textContent = `${placed} av ${ELECTRODES.length} elektroder placerade`;
+  document.getElementById('test-progress').style.width = pct + '%';
+}
+
+function handleTestTap(id) {
+  if (testPlaced.includes(id)) return;
+  testPlaced.push(id);
+  const circle = document.getElementById(`circle-${id}-test`);
+  // Always mark as placed (user can't know if wrong in test)
+  circle.className.baseVal = 'electrode-pad placed-correct';
+  testCorrect++; // In this version, placement is always accepted (position is fixed anyway)
+  updateTestUI();
+
+  if (testPlaced.length === ELECTRODES.length) {
+    setTimeout(showTestResult, 500);
+  }
+}
+
+function showTestResult() {
+  const score = testCorrect;
+  const total = ELECTRODES.length;
+  const pct = Math.round((score / total) * 100);
+
+  document.querySelector('#test-screen .instruction-panel').style.display = 'none';
+  const resultEl = document.getElementById('test-result');
+  resultEl.classList.add('visible');
+
+  document.getElementById('test-result-icon').textContent = pct === 100 ? '🏆' : pct >= 70 ? '👍' : '📚';
+  document.getElementById('test-result-title').textContent = pct === 100 ? 'Perfekt!' : pct >= 70 ? 'Godkänt' : 'Fortsätt träna';
+  document.getElementById('test-result-score').textContent = `${score}/${total}`;
+  document.getElementById('test-result-sub').textContent =
+    pct === 100 ? 'Alla elektroder placerade korrekt!' :
+    pct >= 70 ? 'Bra resultat! Träna mer för att bli ännu bättre.' :
+    'Öva mer i träningsläget och försök igen.';
+
+  if (pct === 100) saveAchievement('test_perfect');
+  if (pct >= 70) saveAchievement('test_pass');
+  saveTestScore(score, total);
+}
+
+/* ═══════════════════════════════════════════════════════
+   ACHIEVEMENTS
+═══════════════════════════════════════════════════════ */
+
+const ACHIEVEMENT_DEFS = [
+  { id: 'training_complete', icon: '📚', title: 'Tränat klart', desc: 'Genomfört en komplett träningssession' },
+  { id: 'test_pass', icon: '✅', title: 'Godkänt test', desc: 'Klarat ett test med minst 70 %' },
+  { id: 'test_perfect', icon: '🏆', title: 'Perfekt!', desc: 'Placerat alla 10 elektroder rätt på ett test' },
+  { id: 'test_3x', icon: '🔥', title: 'Ihärdig', desc: 'Klarat test tre gånger' },
+];
+
+function loadAchievements() {
+  try { return JSON.parse(localStorage.getItem('ekg_achievements') || '{}'); }
+  catch { return {}; }
+}
+
+function saveAchievement(id) {
+  const a = loadAchievements();
+  if (!a[id]) {
+    a[id] = new Date().toISOString();
+    localStorage.setItem('ekg_achievements', JSON.stringify(a));
+  }
+}
+
+function saveTestScore(score, total) {
+  const history = JSON.parse(localStorage.getItem('ekg_test_history') || '[]');
+  history.push({ score, total, date: new Date().toISOString() });
+  localStorage.setItem('ekg_test_history', JSON.stringify(history));
+
+  const passes = history.filter(h => h.score / h.total >= 0.7).length;
+  if (passes >= 3) saveAchievement('test_3x');
+}
+
+function showAchievements() {
+  showScreen('achievements-screen');
+  const unlocked = loadAchievements();
+  const history = JSON.parse(localStorage.getItem('ekg_test_history') || '[]');
+
+  const list = document.getElementById('achievements-list');
+  list.innerHTML = '';
+
+  if (history.length > 0) {
+    const best = Math.max(...history.map(h => h.score));
+    const div = document.createElement('div');
+    div.style.cssText = 'background:var(--accent-light);border-radius:12px;padding:16px 18px;margin-bottom:4px;';
+    div.innerHTML = `<div style="font-size:13px;color:var(--text-muted)">Bästa resultat</div>
+      <div style="font-size:28px;font-weight:800;color:var(--accent);letter-spacing:-0.5px">${best}/${ELECTRODES.length}</div>
+      <div style="font-size:13px;color:var(--text-muted)">av ${history.length} genomförda test</div>`;
+    list.appendChild(div);
+  }
+
+  ACHIEVEMENT_DEFS.forEach(def => {
+    const isUnlocked = !!unlocked[def.id];
+    const card = document.createElement('div');
+    card.className = 'achievement-card' + (isUnlocked ? '' : ' achievement-locked');
+    const dateStr = isUnlocked ? new Date(unlocked[def.id]).toLocaleDateString('sv-SE') : '';
+    card.innerHTML = `
+      <div class="achievement-icon">${def.icon}</div>
+      <div class="achievement-info">
+        <strong>${def.title}</strong>
+        <span>${def.desc}</span>
+        ${isUnlocked ? `<span style="font-size:12px;color:var(--success);margin-top:4px">${dateStr}</span>` : ''}
+      </div>
+      <span class="achievement-badge ${isUnlocked ? '' : 'locked'}">${isUnlocked ? 'Uppnått' : 'Låst'}</span>`;
+    list.appendChild(card);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════════ */
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goHome() { showScreen('home'); }
+function showFilm() { showScreen('film-screen'); }
+
+/* ═══════════════════════════════════════════════════════
+   SERVICE WORKER
+═══════════════════════════════════════════════════════ */
+
+if ('serviceWorker' in navigator) {
+  const swPath = location.pathname.replace(/\/[^/]*$/, '') + '/sw.js';
+  navigator.serviceWorker.register(swPath).catch(() => {});
+}
+</script>
+</body>
+</html>
