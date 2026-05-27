@@ -141,6 +141,7 @@
     .menu-btn-icon.green { background: var(--success-light); }
     .menu-btn-icon.amber { background: #fef3c7; }
     .menu-btn-icon.purple { background: #f3e8ff; }
+    .menu-btn-icon.teal { background: #e6f6f6; }
     .menu-btn-text { flex: 1; }
     .menu-btn-text strong {
       display: block;
@@ -414,6 +415,48 @@
       line-height: 1.5;
     }
 
+    /* ── Landmarks legend ── */
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    .legend-item:active { background: var(--border); }
+    .legend-item span {
+      display: inline-block;
+      width: 20px;
+      height: 3px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .landmark-info-card {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .landmark-info-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+    .landmark-info-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .landmark-info-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
     /* ── Responsive ── */
     @media (min-height: 700px) {
       .body-svg { max-height: calc(100vh - 260px); }
@@ -448,6 +491,14 @@
         <div class="menu-btn-text">
           <strong>Test</strong>
           <span>Testa dina kunskaper</span>
+        </div>
+        <span class="menu-btn-arrow">›</span>
+      </button>
+      <button class="menu-btn" onclick="showLandmarks()">
+        <div class="menu-btn-icon teal">🫁</div>
+        <div class="menu-btn-text">
+          <strong>Anatomiska landmärken</strong>
+          <span>Linjer och referenspunkter för EKG</span>
         </div>
         <span class="menu-btn-arrow">›</span>
       </button>
@@ -530,6 +581,33 @@
         <div class="result-subtitle" id="test-result-sub">Alla elektroder placerade korrekt!</div>
         <button class="btn-primary" onclick="startTest()">Testa igen</button>
         <button class="btn-secondary" onclick="goHome()">Hem</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANATOMISKA LANDMÄRKEN -->
+  <div id="landmarks-screen" class="screen">
+    <div class="header">
+      <button class="btn-back" onclick="goHome()">‹</button>
+      <h1>Anatomiska landmärken</h1>
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+      <div class="body-container" style="flex:1;">
+        <svg id="body-svg-landmarks" class="body-svg" viewBox="0 0 320 520" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+      <div id="landmark-info-panel" style="background:var(--surface); border-top:1px solid var(--border); padding:14px 20px; min-height:90px;">
+        <div id="landmark-info-content">
+          <div style="font-size:13px; color:var(--text-muted); text-align:center; padding-top:8px;">Tryck på en linje eller punkt för mer information</div>
+        </div>
+      </div>
+      <!-- Legend -->
+      <div style="background:var(--bg); border-top:1px solid var(--border); padding:10px 20px; display:flex; flex-wrap:wrap; gap:8px 16px;">
+        <div class="legend-item" onclick="showLandmarkInfo('mklav')"><span style="background:#2c7bb6"></span>Midklavikulärlinje</div>
+        <div class="legend-item" onclick="showLandmarkInfo('aax')"><span style="background:#d7191c"></span>Ant. axillarlinje</div>
+        <div class="legend-item" onclick="showLandmarkInfo('max')"><span style="background:#1a9641"></span>Med. axillarlinje</div>
+        <div class="legend-item" onclick="showLandmarkInfo('stern')"><span style="background:#756bb1"></span>Sternumkant</div>
+        <div class="legend-item" onclick="showLandmarkInfo('ics')"><span style="background:#fd8d3c"></span>Revbensmellanrum</div>
+        <div class="legend-item" onclick="showLandmarkInfo('clav')"><span style="background:#636363"></span>Klavikel</div>
       </div>
     </div>
   </div>
@@ -866,6 +944,176 @@ function showScreen(id) {
 
 function goHome() { showScreen('home'); }
 function showFilm() { showScreen('film-screen'); }
+
+/* ═══════════════════════════════════════════════════════
+   ANATOMISKA LANDMÄRKEN
+═══════════════════════════════════════════════════════ */
+
+const LANDMARK_INFO = {
+  mklav: {
+    color: '#2c7bb6',
+    title: 'Midklavikulärlinjen',
+    desc: 'En vertikal linje från mitten av klavikeln rakt nedåt. V4 placeras i 5:e revbensmellanrummet längs denna linje — ungefär vid bröstvårtan hos män.'
+  },
+  aax: {
+    color: '#d7191c',
+    title: 'Anteriora axillarlinjen',
+    desc: 'En vertikal linje från den främre axillarvecket (där armens framsida möter bröstkorgen). V5 placeras i samma höjd som V4 längs denna linje.'
+  },
+  max: {
+    color: '#1a9641',
+    title: 'Mediala axillarlinjen',
+    desc: 'En vertikal linje mitt igenom armhålan. V6 placeras i samma höjd som V4 och V5 längs denna linje.'
+  },
+  stern: {
+    color: '#756bb1',
+    title: 'Sternumkant (bröstbenet)',
+    desc: 'Höger sternumkant: V1 placeras i 4:e revbensmellanrummet. Vänster sternumkant: V2 placeras i 4:e revbensmellanrummet. Känn efter sternums kanter som referens.'
+  },
+  ics: {
+    color: '#fd8d3c',
+    title: 'Revbensmellanrum (ICS)',
+    desc: '4:e ICS: Känn klavikelns underkant → följ ned 1:a revbenet → mellanrummet nedan = ICS 1. Räkna vidare: ICS 4 är referens för V1 och V2. ICS 5 längs midklavikulärlinjen = V4.'
+  },
+  clav: {
+    color: '#636363',
+    title: 'Klavikeln (nyckelbenet)',
+    desc: 'Utgångspunkt för att hitta midklavikulärlinjen. Känn ut klavikelns mitt — därifrån dras en vertikal linje nedåt. Används även för att identifiera ICS 1 (direkt nedanför klavikeln).'
+  }
+};
+
+function showLandmarks() {
+  showScreen('landmarks-screen');
+  buildLandmarkBody();
+  showLandmarkInfo(null);
+}
+
+function showLandmarkInfo(id) {
+  const panel = document.getElementById('landmark-info-content');
+  if (!id || !LANDMARK_INFO[id]) {
+    panel.innerHTML = '<div style="font-size:13px;color:var(--text-muted);text-align:center;padding-top:8px;">Tryck på en linje eller punkt för mer information</div>';
+    return;
+  }
+  const info = LANDMARK_INFO[id];
+  panel.innerHTML = `<div class="landmark-info-card">
+    <div class="landmark-info-dot" style="background:${info.color}"></div>
+    <div>
+      <div class="landmark-info-title">${info.title}</div>
+      <div class="landmark-info-desc">${info.desc}</div>
+    </div>
+  </div>`;
+}
+
+function buildLandmarkBody() {
+  const svg = document.getElementById('body-svg-landmarks');
+
+  const ribLines = [
+    [153,140, 107,158, 167,140, 213,158],
+    [145,157,  91,175, 175,157, 229,175],
+    [135,174,  77,192, 185,174, 243,192],
+    [128,191,  68,209, 192,191, 252,209],
+    [120,208,  62,226, 200,208, 258,226],
+    [116,225,  68,243, 204,225, 252,243],
+  ].map(([xl,yl,x2l,y2l, xr,yr,x2r,y2r]) =>
+    `<path d="M${xl},${yl} Q${(xl+x2l)/2},${yl+8} ${x2l},${y2l}" stroke="#bfbdb5" stroke-width="4" fill="none" stroke-linecap="round"/>
+     <path d="M${xr},${yr} Q${(xr+x2r)/2},${yr+8} ${x2r},${y2r}" stroke="#bfbdb5" stroke-width="4" fill="none" stroke-linecap="round"/>`
+  ).join('');
+
+  /* Anatomical line positions (patient-left = SVG-right side, where V1-V6 are) */
+  const Y_TOP = 102;   /* top of torso */
+  const Y_BOT = 348;   /* bottom of torso */
+
+  /* Midclavicular line: ~x=200 (patient left side) */
+  const X_MKL = 200;
+  /* Anterior axillary line: ~x=218 */
+  const X_AAX = 220;
+  /* Mid axillary line: ~x=234 */
+  const X_MAX = 236;
+  /* Sternal borders */
+  const X_STERN_R = 153; /* right sternal border (patient right = SVG left) */
+  const X_STERN_L = 167; /* left sternal border */
+
+  /* ICS markers: horizontal dashes at ICS4 and ICS5 on patient-left */
+  /* ICS4 ≈ y=200, ICS5 ≈ y=218 */
+  const ICS4_Y = 200;
+  const ICS5_Y = 218;
+
+  /* Klavikel lines */
+  const CLAV_Y = 118;
+
+  svg.innerHTML = `
+    <!-- Body base -->
+    <rect x="100" y="340" width="46" height="130" rx="10" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
+    <rect x="174" y="340" width="46" height="130" rx="10" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
+    <rect x="30" y="128" width="36" height="114" rx="10" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
+    <rect x="254" y="128" width="36" height="114" rx="10" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
+    <rect x="80" y="100" width="160" height="250" rx="22" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
+    <rect x="62" y="118" width="196" height="44" rx="16" fill="#f2d9c8" stroke="none"/>
+    <rect x="136" y="68" width="48" height="44" rx="8" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
+    <ellipse cx="160" cy="50" rx="34" ry="36" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
+    <rect x="153" y="128" width="14" height="122" rx="4" fill="#d0cfc8" stroke="#aaa9a0" stroke-width="1"/>
+    ${ribLines}
+    <path d="M104,265 Q130,312 160,322 Q190,312 216,265" stroke="#bfbdb5" stroke-width="4" fill="none" stroke-linecap="round"/>
+
+    <!-- ── KLAVIKEL (grå) ── -->
+    <!-- Patient right clavicle -->
+    <path d="M152,${CLAV_Y} Q120,114 66,126" stroke="#636363" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="0" class="lm-clav" style="cursor:pointer"/>
+    <!-- Patient left clavicle -->
+    <path d="M168,${CLAV_Y} Q200,114 254,126" stroke="#636363" stroke-width="3" fill="none" stroke-linecap="round" class="lm-clav" style="cursor:pointer"/>
+
+    <!-- ── STERNUMKANTER (lila) ── -->
+    <line x1="${X_STERN_R}" y1="128" x2="${X_STERN_R}" y2="${Y_BOT}" stroke="#756bb1" stroke-width="2" stroke-dasharray="6,4" class="lm-stern" style="cursor:pointer"/>
+    <line x1="${X_STERN_L}" y1="128" x2="${X_STERN_L}" y2="${Y_BOT}" stroke="#756bb1" stroke-width="2" stroke-dasharray="6,4" class="lm-stern" style="cursor:pointer"/>
+    <text x="${X_STERN_R - 3}" y="${Y_TOP + 12}" text-anchor="middle" font-size="7" fill="#756bb1" font-weight="600" pointer-events="none">V1</text>
+    <text x="${X_STERN_L + 3}" y="${Y_TOP + 12}" text-anchor="middle" font-size="7" fill="#756bb1" font-weight="600" pointer-events="none">V2</text>
+
+    <!-- ── MIDKLAVIKULÄRLINJE (blå) ── -->
+    <line x1="${X_MKL}" y1="${Y_TOP}" x2="${X_MKL}" y2="${Y_BOT}" stroke="#2c7bb6" stroke-width="2" stroke-dasharray="8,4" class="lm-mklav" style="cursor:pointer"/>
+    <text x="${X_MKL + 2}" y="${Y_TOP + 10}" text-anchor="start" font-size="7" fill="#2c7bb6" font-weight="600" pointer-events="none">MCL</text>
+
+    <!-- ── ANTERIORA AXILLARLINJE (röd) ── -->
+    <line x1="${X_AAX}" y1="${Y_TOP + 20}" x2="${X_AAX}" y2="${Y_BOT}" stroke="#d7191c" stroke-width="2" stroke-dasharray="8,4" class="lm-aax" style="cursor:pointer"/>
+    <text x="${X_AAX + 2}" y="${Y_TOP + 30}" text-anchor="start" font-size="7" fill="#d7191c" font-weight="600" pointer-events="none">AAL</text>
+
+    <!-- ── MEDIALA AXILLARLINJE (grön) ── -->
+    <line x1="${X_MAX}" y1="${Y_TOP + 38}" x2="${X_MAX}" y2="${Y_BOT}" stroke="#1a9641" stroke-width="2" stroke-dasharray="8,4" class="lm-max" style="cursor:pointer"/>
+    <text x="${X_MAX + 2}" y="${Y_TOP + 48}" text-anchor="start" font-size="7" fill="#1a9641" font-weight="600" pointer-events="none">MAL</text>
+
+    <!-- ── ICS MARKERINGAR (orange) ── -->
+    <!-- ICS 4: horisontell linje vid V1/V2-höjd -->
+    <line x1="82" y1="${ICS4_Y}" x2="238" y2="${ICS4_Y}" stroke="#fd8d3c" stroke-width="1.5" stroke-dasharray="4,4" class="lm-ics" style="cursor:pointer"/>
+    <text x="84" y="${ICS4_Y - 2}" text-anchor="start" font-size="7" fill="#fd8d3c" font-weight="600" pointer-events="none">ICS 4</text>
+    <!-- ICS 5: horisontell linje vid V4/V5/V6-höjd -->
+    <line x1="82" y1="${ICS5_Y}" x2="238" y2="${ICS5_Y}" stroke="#fd8d3c" stroke-width="1.5" stroke-dasharray="4,4" class="lm-ics" style="cursor:pointer"/>
+    <text x="84" y="${ICS5_Y - 2}" text-anchor="start" font-size="7" fill="#fd8d3c" font-weight="600" pointer-events="none">ICS 5</text>
+
+    <!-- ── Skärningspunkter (elektrodpositioner) ── -->
+    <!-- V1: ICS4 × höger sternumkant -->
+    <circle cx="${X_STERN_R}" cy="${ICS4_Y}" r="5" fill="white" stroke="#756bb1" stroke-width="2"/>
+    <text cx="${X_STERN_R}" cy="${ICS4_Y}" x="${X_STERN_R}" y="${ICS4_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="5" font-weight="800" fill="#756bb1" pointer-events="none">V1</text>
+    <!-- V2: ICS4 × vänster sternumkant -->
+    <circle cx="${X_STERN_L}" cy="${ICS4_Y}" r="5" fill="white" stroke="#756bb1" stroke-width="2"/>
+    <text x="${X_STERN_L}" y="${ICS4_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="5" font-weight="800" fill="#756bb1" pointer-events="none">V2</text>
+    <!-- V4: ICS5 × MCL -->
+    <circle cx="${X_MKL}" cy="${ICS5_Y}" r="5" fill="white" stroke="#2c7bb6" stroke-width="2"/>
+    <text x="${X_MKL}" y="${ICS5_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="5" font-weight="800" fill="#2c7bb6" pointer-events="none">V4</text>
+    <!-- V5: ICS5 × AAL -->
+    <circle cx="${X_AAX}" cy="${ICS5_Y}" r="5" fill="white" stroke="#d7191c" stroke-width="2"/>
+    <text x="${X_AAX}" y="${ICS5_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="5" font-weight="800" fill="#d7191c" pointer-events="none">V5</text>
+    <!-- V6: ICS5 × MAL -->
+    <circle cx="${X_MAX}" cy="${ICS5_Y}" r="5" fill="white" stroke="#1a9641" stroke-width="2"/>
+    <text x="${X_MAX}" y="${ICS5_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="5" font-weight="800" fill="#1a9641" pointer-events="none">V6</text>
+  `;
+
+  /* Attach click handlers */
+  const handlers = { 'lm-mklav': 'mklav', 'lm-aax': 'aax', 'lm-max': 'max', 'lm-stern': 'stern', 'lm-ics': 'ics', 'lm-clav': 'clav' };
+  Object.entries(handlers).forEach(([cls, key]) => {
+    svg.querySelectorAll('.' + cls).forEach(el => {
+      el.addEventListener('click', () => showLandmarkInfo(key));
+      el.addEventListener('touchend', e => { e.preventDefault(); showLandmarkInfo(key); });
+    });
+  });
+}
 
 /* ═══════════════════════════════════════════════════════
    SERVICE WORKER
