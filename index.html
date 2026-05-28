@@ -191,8 +191,9 @@
     /* ── Body SVG container ── */
     .body-container {
       flex: 1;
+      min-height: 0;
       display: flex;
-      align-items: center;
+      align-items: stretch;
       justify-content: center;
       padding: 8px;
       overflow: hidden;
@@ -201,8 +202,8 @@
 
     .body-svg {
       width: 100%;
+      height: 100%;
       max-width: 400px;
-      max-height: calc(100vh - 180px);
       touch-action: none;
       display: block;
     }
@@ -471,9 +472,7 @@
     }
 
     /* ── Responsive ── */
-    @media (min-height: 700px) {
-      .body-svg { max-height: calc(100vh - 160px); }
-    }
+    .practice-screen { min-height: 0; }
   </style>
 </head>
 <body>
@@ -557,7 +556,7 @@
         </div>
       </div>
       <div class="body-container">
-        <svg id="body-svg-train" class="body-svg" viewBox="40 0 240 490" xmlns="http://www.w3.org/2000/svg"></svg>
+        <svg id="body-svg-train" class="body-svg" viewBox="40 0 240 490" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"></svg>
       </div>
       <div class="result-panel" id="train-result">
         <div class="result-icon">🎉</div>
@@ -582,7 +581,7 @@
         <div class="progress-bar"><div class="progress-fill" id="test-progress" style="width:0%"></div></div>
       </div>
       <div class="body-container">
-        <svg id="body-svg-test" class="body-svg" viewBox="40 0 240 490" xmlns="http://www.w3.org/2000/svg"></svg>
+        <svg id="body-svg-test" class="body-svg" viewBox="40 0 240 490" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"></svg>
       </div>
       <div class="instruction-panel" id="test-instruction-panel">
         <div class="instruction-card">
@@ -612,7 +611,7 @@
     </div>
     <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
       <div class="body-container" style="flex:1;">
-        <svg id="body-svg-landmarks" class="body-svg" viewBox="40 0 240 490" xmlns="http://www.w3.org/2000/svg"></svg>
+        <svg id="body-svg-landmarks" class="body-svg" viewBox="40 0 240 490" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"></svg>
       </div>
       <div id="landmark-info-panel" style="background:var(--surface); border-top:1px solid var(--border); padding:14px 20px; min-height:90px;">
         <div id="landmark-info-content">
