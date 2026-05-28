@@ -419,6 +419,9 @@
     svg[data-mode="test"] .electrode-pad { fill: transparent; stroke: transparent; }
     svg[data-mode="test"] .electrode-label { display: none; }
     svg[data-mode="test"] .electrode-pad.placed-correct { fill: rgba(76,175,130,0.85); stroke: #2e7d5a; }
+    /* Only the active electrode is tappable — prevents overlapping hit areas stealing clicks */
+    svg[data-mode="test"] .electrode-target { pointer-events: none; }
+    svg[data-mode="test"] .electrode-target[data-state="active"] { pointer-events: all; }
 
     /* Training mode: only show active + done electrodes */
     svg[data-mode="train"] .electrode-target { opacity: 0; pointer-events: none; }
@@ -881,6 +884,16 @@ function updateTestUI() {
 
   document.getElementById('test-dot').style.background = e.color;
   document.getElementById('test-lead-text').textContent = text;
+
+  /* Only the current electrode is tappable — avoids overlapping hit areas */
+  const placedIds = new Set(testOrder.slice(0, testCurrentIdx).map(t => t.id));
+  ELECTRODES.forEach(ed => {
+    const g = document.getElementById(`pad-${ed.id}-test`);
+    if (!g) return;
+    if (ed.id === e.id)              g.setAttribute('data-state', 'active');
+    else if (placedIds.has(ed.id))   g.setAttribute('data-state', 'done');
+    else                             g.setAttribute('data-state', 'future');
+  });
 
   _zoomFor('body-svg-test', e);
 }
