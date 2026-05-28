@@ -425,9 +425,6 @@
     svg[data-mode="test"] .electrode-pad { fill: transparent; stroke: transparent; }
     svg[data-mode="test"] .electrode-label { display: none; }
     svg[data-mode="test"] .electrode-pad.placed-correct { fill: rgba(76,175,130,0.85); stroke: #2e7d5a; }
-    /* Only the active electrode is tappable — prevents overlapping hit areas stealing clicks */
-    svg[data-mode="test"] .electrode-target { pointer-events: none; }
-    svg[data-mode="test"] .electrode-target[data-state="active"] { pointer-events: all; }
 
     /* Training mode: only show active + done electrodes */
     svg[data-mode="train"] .electrode-target { opacity: 0; pointer-events: none; }
@@ -693,9 +690,7 @@ function buildBody(svgEl, mode) {
     const isChest = e.id.startsWith('V');
     const r = isChest ? 8 : 14;
     const fs = isChest ? 7 : 8;
-    const hitR = mode === 'test' ? r + 8 : 0;
     return `<g class="electrode-target" id="pad-${e.id}-${mode}">
-      ${hitR ? `<circle cx="${e.x}" cy="${e.y}" r="${hitR}" fill="transparent" stroke="none"/>` : ''}
       <circle cx="${e.x}" cy="${e.y}" r="${r}" class="electrode-pad" id="circle-${e.id}-${mode}"/>
       <text x="${e.x}" y="${e.y}" text-anchor="middle" dominant-baseline="middle"
         font-size="${fs}" font-weight="700" font-family="system-ui,sans-serif"
@@ -703,17 +698,37 @@ function buildBody(svgEl, mode) {
     </g>`;
   }).join('');
 
-  const imgSrc = 'body.jpg';
   svgEl.innerHTML = `
-    <image href="${imgSrc}" x="0" y="0" width="320" height="530" preserveAspectRatio="xMidYMid meet"/>
+    <image href="body.jpg" x="0" y="0" width="320" height="530" preserveAspectRatio="xMidYMid meet" pointer-events="none"/>
     ${electrodesHtml}
   `;
 
-  svgEl.querySelectorAll('.electrode-target').forEach(g => {
-    const eid = g.id.replace('pad-', '').replace(`-${mode}`, '');
-    g.addEventListener('click', () => handleElectrodeTap(eid, mode));
-    g.addEventListener('touchend', ev => { ev.preventDefault(); handleElectrodeTap(eid, mode); });
-  });
+  if (mode === 'train') {
+    svgEl.querySelectorAll('.electrode-target').forEach(g => {
+      const eid = g.id.replace('pad-', '').replace('-train', '');
+      g.addEventListener('click', () => handleElectrodeTap(eid, 'train'));
+      g.addEventListener('touchend', ev => { ev.preventDefault(); handleElectrodeTap(eid, 'train'); });
+    });
+  } else if (mode === 'test') {
+    /* Nearest-centre logic: tap anywhere → resolve to closest unplaced electrode */
+    const onTap = (ev) => {
+      if (ev.type === 'touchend') ev.preventDefault();
+      const src = ev.changedTouches ? ev.changedTouches[0] : ev;
+      const pt = svgEl.createSVGPoint();
+      pt.x = src.clientX; pt.y = src.clientY;
+      const svgPt = pt.matrixTransform(svgEl.getScreenCTM().inverse());
+      const placedIds = new Set(testOrder.slice(0, testCurrentIdx).map(t => t.id));
+      let best = null, bestDist = Infinity;
+      ELECTRODES.forEach(e => {
+        if (placedIds.has(e.id)) return;
+        const d = Math.hypot(e.x - svgPt.x, e.y - svgPt.y);
+        if (d < bestDist) { bestDist = d; best = e; }
+      });
+      if (best) handleElectrodeTap(best.id, 'test');
+    };
+    svgEl.addEventListener('click', onTap);
+    svgEl.addEventListener('touchend', onTap);
+  }
 }
 
 /* ═══════════════════════════════════════════════════════

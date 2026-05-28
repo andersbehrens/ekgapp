@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ekg-app-v19';
+const CACHE_NAME = 'ekg-app-v20';
 const BASE = self.location.pathname.replace(/\/sw\.js$/, '');
 const ASSETS = [
   BASE + '/',
