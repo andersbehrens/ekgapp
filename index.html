@@ -542,10 +542,6 @@
       <span class="header-badge" id="train-counter">1 / 10</span>
     </div>
     <div class="practice-screen">
-      <div class="progress-bar-wrap">
-        <div class="step-label" id="train-step-label">Placera elektrod 1 av 10</div>
-        <div class="progress-bar"><div class="progress-fill" id="train-progress" style="width:10%"></div></div>
-      </div>
       <div class="instruction-panel" id="train-instruction">
         <div class="instruction-card" id="train-card">
           <div class="instruction-dot" id="train-dot"></div>
@@ -798,11 +794,8 @@ function updateTrainUI() {
   }
   const e = ELECTRODES[trainStep];
   _zoomFor('body-svg-train', e);
-  const pct = Math.round((trainStep / ELECTRODES.length) * 100);
 
   document.getElementById('train-counter').textContent = `${trainStep + 1} / ${ELECTRODES.length}`;
-  document.getElementById('train-step-label').textContent = `Placera elektrod ${trainStep + 1} av ${ELECTRODES.length}`;
-  document.getElementById('train-progress').style.width = pct + '%';
 
   document.getElementById('train-lead-name').textContent = e.label;
   document.getElementById('train-lead-desc').textContent = e.desc;
