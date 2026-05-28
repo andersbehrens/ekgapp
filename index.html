@@ -732,7 +732,8 @@ function buildBody(svgEl, mode) {
 ═══════════════════════════════════════════════════════ */
 
 const VB_FULL  = [40, 0, 240, 490];
-const VB_TORSO = [108, 32, 138, 125];
+const VB_TORSO     = [108, 32, 138, 125];
+const VB_LANDMARKS = [65, 55, 200, 200]; /* chest crop for landmarks screen */
 
 const _vbNow = {};   // svgId → current [x,y,w,h]
 const _vbRaf = {};   // svgId → rAF handle
@@ -1066,6 +1067,7 @@ const LANDMARK_INFO = {
 function showLandmarks() {
   showScreen('landmarks-screen');
   buildLandmarkBody();
+  document.getElementById('body-svg-landmarks').setAttribute('viewBox', VB_LANDMARKS.join(' '));
   showLandmarkInfo(null);
 }
 
@@ -1097,44 +1099,44 @@ function buildLandmarkBody() {
     <image href="body.jpg" x="0" y="0" width="320" height="530" preserveAspectRatio="xMidYMid meet"/>
 
     <!-- ── KLAVIKEL (grå) ── -->
-    <path d="M${X_STERN_R - 3},96 Q108,88 70,95" stroke="#636363" stroke-width="2.5" fill="none" stroke-linecap="round" class="lm-clav" style="cursor:pointer"/>
-    <path d="M${X_STERN_L + 3},96 Q212,88 250,95" stroke="#636363" stroke-width="2.5" fill="none" stroke-linecap="round" class="lm-clav" style="cursor:pointer"/>
+    <path d="M${X_STERN_R - 3},96 Q108,88 70,95" stroke="#636363" stroke-width="1.5" fill="none" stroke-linecap="round" class="lm-clav" style="cursor:pointer"/>
+    <path d="M${X_STERN_L + 3},96 Q212,88 250,95" stroke="#636363" stroke-width="1.5" fill="none" stroke-linecap="round" class="lm-clav" style="cursor:pointer"/>
 
     <!-- ── STERNUMKANTER (lila) ── -->
-    <line x1="${X_STERN_R}" y1="${Y_TOP}" x2="${X_STERN_R}" y2="${Y_BOT}" stroke="#756bb1" stroke-width="2" stroke-dasharray="6,4" class="lm-stern" style="cursor:pointer"/>
-    <line x1="${X_STERN_L}" y1="${Y_TOP}" x2="${X_STERN_L}" y2="${Y_BOT}" stroke="#756bb1" stroke-width="2" stroke-dasharray="6,4" class="lm-stern" style="cursor:pointer"/>
-    <text x="${X_STERN_R - 3}" y="${Y_TOP + 12}" text-anchor="middle" font-size="7" fill="#756bb1" font-weight="600" pointer-events="none">V1</text>
-    <text x="${X_STERN_L + 3}" y="${Y_TOP + 12}" text-anchor="middle" font-size="7" fill="#756bb1" font-weight="600" pointer-events="none">V2</text>
+    <line x1="${X_STERN_R}" y1="${Y_TOP}" x2="${X_STERN_R}" y2="${Y_BOT}" stroke="#756bb1" stroke-width="1.2" stroke-dasharray="4,3" class="lm-stern" style="cursor:pointer"/>
+    <line x1="${X_STERN_L}" y1="${Y_TOP}" x2="${X_STERN_L}" y2="${Y_BOT}" stroke="#756bb1" stroke-width="1.2" stroke-dasharray="4,3" class="lm-stern" style="cursor:pointer"/>
+    <text x="${X_STERN_R - 4}" y="${Y_TOP + 8}" text-anchor="middle" font-size="5" fill="#756bb1" font-weight="700" pointer-events="none">V1</text>
+    <text x="${X_STERN_L + 4}" y="${Y_TOP + 8}" text-anchor="middle" font-size="5" fill="#756bb1" font-weight="700" pointer-events="none">V2</text>
 
     <!-- ── MIDKLAVIKULÄRLINJE (blå) ── -->
-    <line x1="${X_MKL}" y1="${Y_TOP}" x2="${X_MKL}" y2="${Y_BOT}" stroke="#2c7bb6" stroke-width="2" stroke-dasharray="8,4" class="lm-mklav" style="cursor:pointer"/>
-    <text x="${X_MKL + 2}" y="${Y_TOP + 10}" text-anchor="start" font-size="7" fill="#2c7bb6" font-weight="600" pointer-events="none">MCL</text>
+    <line x1="${X_MKL}" y1="${Y_TOP}" x2="${X_MKL}" y2="${Y_BOT}" stroke="#2c7bb6" stroke-width="1.2" stroke-dasharray="5,3" class="lm-mklav" style="cursor:pointer"/>
+    <text x="${X_MKL + 2}" y="${Y_TOP + 7}" text-anchor="start" font-size="5" fill="#2c7bb6" font-weight="700" pointer-events="none">MCL</text>
 
     <!-- ── ANTERIORA AXILLARLINJE (röd) ── -->
-    <line x1="${X_AAX}" y1="${Y_TOP + 20}" x2="${X_AAX}" y2="${Y_BOT}" stroke="#d7191c" stroke-width="2" stroke-dasharray="8,4" class="lm-aax" style="cursor:pointer"/>
-    <text x="${X_AAX + 2}" y="${Y_TOP + 30}" text-anchor="start" font-size="7" fill="#d7191c" font-weight="600" pointer-events="none">AAL</text>
+    <line x1="${X_AAX}" y1="${Y_TOP + 15}" x2="${X_AAX}" y2="${Y_BOT}" stroke="#d7191c" stroke-width="1.2" stroke-dasharray="5,3" class="lm-aax" style="cursor:pointer"/>
+    <text x="${X_AAX + 2}" y="${Y_TOP + 22}" text-anchor="start" font-size="5" fill="#d7191c" font-weight="700" pointer-events="none">AAL</text>
 
     <!-- ── MEDIALA AXILLARLINJE (grön) ── -->
-    <line x1="${X_MAX}" y1="${Y_TOP + 38}" x2="${X_MAX}" y2="${Y_BOT}" stroke="#1a9641" stroke-width="2" stroke-dasharray="8,4" class="lm-max" style="cursor:pointer"/>
-    <text x="${X_MAX + 2}" y="${Y_TOP + 48}" text-anchor="start" font-size="7" fill="#1a9641" font-weight="600" pointer-events="none">MAL</text>
+    <line x1="${X_MAX}" y1="${Y_TOP + 28}" x2="${X_MAX}" y2="${Y_BOT}" stroke="#1a9641" stroke-width="1.2" stroke-dasharray="5,3" class="lm-max" style="cursor:pointer"/>
+    <text x="${X_MAX + 2}" y="${Y_TOP + 35}" text-anchor="start" font-size="5" fill="#1a9641" font-weight="700" pointer-events="none">MAL</text>
 
     <!-- ── ICS MARKERINGAR (orange) ── -->
-    <line x1="115" y1="${ICS4_Y}" x2="240" y2="${ICS4_Y}" stroke="#fd8d3c" stroke-width="1.5" stroke-dasharray="4,4" class="lm-ics" style="cursor:pointer"/>
-    <text x="113" y="${ICS4_Y - 2}" text-anchor="end" font-size="7" fill="#fd8d3c" font-weight="600" pointer-events="none">ICS 4</text>
-    <line x1="115" y1="${ICS5_Y}" x2="240" y2="${ICS5_Y}" stroke="#fd8d3c" stroke-width="1.5" stroke-dasharray="4,4" class="lm-ics" style="cursor:pointer"/>
-    <text x="113" y="${ICS5_Y - 2}" text-anchor="end" font-size="7" fill="#fd8d3c" font-weight="600" pointer-events="none">ICS 5</text>
+    <line x1="110" y1="${ICS4_Y}" x2="245" y2="${ICS4_Y}" stroke="#fd8d3c" stroke-width="1" stroke-dasharray="3,3" class="lm-ics" style="cursor:pointer"/>
+    <text x="108" y="${ICS4_Y - 1}" text-anchor="end" font-size="5" fill="#fd8d3c" font-weight="700" pointer-events="none">ICS 4</text>
+    <line x1="110" y1="${ICS5_Y}" x2="245" y2="${ICS5_Y}" stroke="#fd8d3c" stroke-width="1" stroke-dasharray="3,3" class="lm-ics" style="cursor:pointer"/>
+    <text x="108" y="${ICS5_Y - 1}" text-anchor="end" font-size="5" fill="#fd8d3c" font-weight="700" pointer-events="none">ICS 5</text>
 
     <!-- ── Skärningspunkter (elektrodpositioner) ── -->
-    <circle cx="${X_STERN_R}" cy="${ICS4_Y}" r="5" fill="white" stroke="#756bb1" stroke-width="2"/>
-    <text x="${X_STERN_R}" y="${ICS4_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="5" font-weight="800" fill="#756bb1" pointer-events="none">V1</text>
-    <circle cx="${X_STERN_L}" cy="${ICS4_Y}" r="5" fill="white" stroke="#756bb1" stroke-width="2"/>
-    <text x="${X_STERN_L}" y="${ICS4_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="5" font-weight="800" fill="#756bb1" pointer-events="none">V2</text>
-    <circle cx="${X_MKL}" cy="${ICS5_Y}" r="5" fill="white" stroke="#2c7bb6" stroke-width="2"/>
-    <text x="${X_MKL}" y="${ICS5_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="5" font-weight="800" fill="#2c7bb6" pointer-events="none">V4</text>
-    <circle cx="${X_AAX}" cy="${ICS5_Y}" r="5" fill="white" stroke="#d7191c" stroke-width="2"/>
-    <text x="${X_AAX}" y="${ICS5_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="5" font-weight="800" fill="#d7191c" pointer-events="none">V5</text>
-    <circle cx="${X_MAX}" cy="${ICS5_Y}" r="5" fill="white" stroke="#1a9641" stroke-width="2"/>
-    <text x="${X_MAX}" y="${ICS5_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="5" font-weight="800" fill="#1a9641" pointer-events="none">V6</text>
+    <circle cx="${X_STERN_R}" cy="${ICS4_Y}" r="4" fill="white" stroke="#756bb1" stroke-width="1.5"/>
+    <text x="${X_STERN_R}" y="${ICS4_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="4" font-weight="800" fill="#756bb1" pointer-events="none">V1</text>
+    <circle cx="${X_STERN_L}" cy="${ICS4_Y}" r="4" fill="white" stroke="#756bb1" stroke-width="1.5"/>
+    <text x="${X_STERN_L}" y="${ICS4_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="4" font-weight="800" fill="#756bb1" pointer-events="none">V2</text>
+    <circle cx="${X_MKL}" cy="${ICS5_Y}" r="4" fill="white" stroke="#2c7bb6" stroke-width="1.5"/>
+    <text x="${X_MKL}" y="${ICS5_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="4" font-weight="800" fill="#2c7bb6" pointer-events="none">V4</text>
+    <circle cx="${X_AAX}" cy="${ICS5_Y}" r="4" fill="white" stroke="#d7191c" stroke-width="1.5"/>
+    <text x="${X_AAX}" y="${ICS5_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="4" font-weight="800" fill="#d7191c" pointer-events="none">V5</text>
+    <circle cx="${X_MAX}" cy="${ICS5_Y}" r="4" fill="white" stroke="#1a9641" stroke-width="1.5"/>
+    <text x="${X_MAX}" y="${ICS5_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="4" font-weight="800" fill="#1a9641" pointer-events="none">V6</text>
   `;
 
   /* Attach click handlers */
