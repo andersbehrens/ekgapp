@@ -415,6 +415,11 @@
       line-height: 1.5;
     }
 
+    /* ── Test mode: electrodes hidden until placed ── */
+    svg[data-mode="test"] .electrode-pad { fill: transparent; stroke: transparent; }
+    svg[data-mode="test"] .electrode-label { display: none; }
+    svg[data-mode="test"] .electrode-pad.placed-correct { fill: rgba(76,175,130,0.85); stroke: #2e7d5a; }
+
     /* ── Landmarks legend ── */
     .legend-item {
       display: flex;
@@ -533,9 +538,6 @@
         <div class="step-label" id="train-step-label">Placera elektrod 1 av 10</div>
         <div class="progress-bar"><div class="progress-fill" id="train-progress" style="width:10%"></div></div>
       </div>
-      <div class="body-container">
-        <svg id="body-svg-train" class="body-svg" viewBox="0 0 320 520" xmlns="http://www.w3.org/2000/svg"></svg>
-      </div>
       <div class="instruction-panel" id="train-instruction">
         <div class="instruction-card" id="train-card">
           <div class="instruction-dot" id="train-dot"></div>
@@ -545,6 +547,9 @@
             <div class="lead-hint" id="train-lead-hint"></div>
           </div>
         </div>
+      </div>
+      <div class="body-container">
+        <svg id="body-svg-train" class="body-svg" viewBox="0 0 320 530" xmlns="http://www.w3.org/2000/svg"></svg>
       </div>
       <div class="result-panel" id="train-result">
         <div class="result-icon">🎉</div>
@@ -569,7 +574,7 @@
         <div class="progress-bar"><div class="progress-fill" id="test-progress" style="width:0%"></div></div>
       </div>
       <div class="body-container">
-        <svg id="body-svg-test" class="body-svg" viewBox="0 0 320 520" xmlns="http://www.w3.org/2000/svg"></svg>
+        <svg id="body-svg-test" class="body-svg" viewBox="0 0 320 530" xmlns="http://www.w3.org/2000/svg"></svg>
       </div>
       <div class="instruction-panel">
         <div class="test-hint">Tryck på rätt ställen för att placera elektroderna — ingen ledtråd ges.</div>
@@ -593,7 +598,7 @@
     </div>
     <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
       <div class="body-container" style="flex:1;">
-        <svg id="body-svg-landmarks" class="body-svg" viewBox="0 0 320 520" xmlns="http://www.w3.org/2000/svg"></svg>
+        <svg id="body-svg-landmarks" class="body-svg" viewBox="0 0 320 530" xmlns="http://www.w3.org/2000/svg"></svg>
       </div>
       <div id="landmark-info-panel" style="background:var(--surface); border-top:1px solid var(--border); padding:14px 20px; min-height:90px;">
         <div id="landmark-info-content">
@@ -650,17 +655,18 @@
 ═══════════════════════════════════════════════════════ */
 
 /* All 10 electrodes in placement order */
+/* Positions calibrated to body.jpg (1069×1769 → viewBox 320×530) */
 const ELECTRODES = [
-  { id: 'RA', label: 'Höger arm (RA)', color: '#e53e3e', desc: 'Handleden, höger arm', hint: 'Röd elektrod — placeras på insidan av höger handled', x: 52, y: 190 },
-  { id: 'LA', label: 'Vänster arm (LA)', color: '#d69e2e', desc: 'Handleden, vänster arm', hint: 'Gul elektrod — placeras på insidan av vänster handled', x: 268, y: 190 },
-  { id: 'RL', label: 'Höger ben (RL)', color: '#1a202c', desc: 'Vristen, höger ben', hint: 'Svart elektrod — jordelektrod, placeras på insidan av höger vrist', x: 123, y: 456 },
-  { id: 'LL', label: 'Vänster ben (LL)', color: '#38a169', desc: 'Vristen, vänster ben', hint: 'Grön elektrod — placeras på insidan av vänster vrist', x: 197, y: 456 },
-  { id: 'V1', label: 'V1', color: '#e53e3e', desc: '4:e revbensmellanrummet, höger om bröstbenet', hint: 'Parasternalt höger, 4:e ICS', x: 138, y: 212 },
-  { id: 'V2', label: 'V2', color: '#d69e2e', desc: '4:e revbensmellanrummet, vänster om bröstbenet', hint: 'Parasternalt vänster, 4:e ICS', x: 182, y: 212 },
-  { id: 'V3', label: 'V3', color: '#38a169', desc: 'Mellan V2 och V4', hint: 'Diagonalt mellan V2 och V4', x: 196, y: 232 },
-  { id: 'V4', label: 'V4', color: '#744210', desc: '5:e revbensmellanrummet, midklavikulärlinjen', hint: 'Ungefär vid bröstvårtan, 5:e ICS', x: 200, y: 252 },
-  { id: 'V5', label: 'V5', color: '#1a202c', desc: 'Anteriora axillarlinjen, samma nivå som V4', hint: 'Samma höjd som V4, mot armhålan', x: 214, y: 255 },
-  { id: 'V6', label: 'V6', color: '#553c9a', desc: 'Mediala axillarlinjen, samma nivå som V4–V5', hint: 'Mitt i armhålan, samma höjd som V4 och V5', x: 228, y: 258 },
+  { id: 'RA', label: 'Höger arm (RA)', color: '#e53e3e', desc: 'Handleden, höger arm', hint: 'Röd elektrod — placeras på insidan av höger handled', x: 37,  y: 207 },
+  { id: 'LA', label: 'Vänster arm (LA)', color: '#d69e2e', desc: 'Handleden, vänster arm', hint: 'Gul elektrod — placeras på insidan av vänster handled', x: 284, y: 207 },
+  { id: 'RL', label: 'Höger ben (RL)', color: '#1a202c', desc: 'Vristen, höger ben', hint: 'Svart elektrod — jordelektrod, placeras på insidan av höger vrist', x: 134, y: 447 },
+  { id: 'LL', label: 'Vänster ben (LL)', color: '#38a169', desc: 'Vristen, vänster ben', hint: 'Grön elektrod — placeras på insidan av vänster vrist', x: 170, y: 447 },
+  { id: 'V1', label: 'V1', color: '#e53e3e', desc: '4:e revbensmellanrummet, höger om bröstbenet', hint: 'Parasternalt höger, 4:e ICS', x: 133, y: 138 },
+  { id: 'V2', label: 'V2', color: '#d69e2e', desc: '4:e revbensmellanrummet, vänster om bröstbenet', hint: 'Parasternalt vänster, 4:e ICS', x: 153, y: 138 },
+  { id: 'V4', label: 'V4', color: '#744210', desc: '5:e revbensmellanrummet, midklavikulärlinjen', hint: 'Ungefär vid bröstvårtan, 5:e ICS', x: 178, y: 154 },
+  { id: 'V3', label: 'V3', color: '#38a169', desc: 'Mellan V2 och V4', hint: '💡 Tips: Placera V3 mitt emellan V2 och V4 — diagonalt ned mot bröstvårtan', x: 166, y: 147 },
+  { id: 'V5', label: 'V5', color: '#1a202c', desc: 'Anteriora axillarlinjen, samma nivå som V4', hint: 'Samma höjd som V4, mot armhålan', x: 191, y: 159 },
+  { id: 'V6', label: 'V6', color: '#553c9a', desc: 'Mediala axillarlinjen, samma nivå som V4–V5', hint: 'Mitt i armhålan, samma höjd som V4 och V5', x: 203, y: 161 },
 ];
 
 /* ═══════════════════════════════════════════════════════
@@ -668,57 +674,27 @@ const ELECTRODES = [
 ═══════════════════════════════════════════════════════ */
 
 function buildBody(svgEl, mode) {
-  const ribLines = [
-    [153,140, 107,158, 167,140, 213,158],
-    [145,157,  91,175, 175,157, 229,175],
-    [135,174,  77,192, 185,174, 243,192],
-    [128,191,  68,209, 192,191, 252,209],
-    [120,208,  62,226, 200,208, 258,226],
-    [116,225,  68,243, 204,225, 252,243],
-  ].map(([xl,yl,x2l,y2l, xr,yr,x2r,y2r]) =>
-    `<path d="M${xl},${yl} Q${(xl+x2l)/2},${yl+8} ${x2l},${y2l}" stroke="#bfbdb5" stroke-width="4" fill="none" stroke-linecap="round"/>
-     <path d="M${xr},${yr} Q${(xr+x2r)/2},${yr+8} ${x2r},${y2r}" stroke="#bfbdb5" stroke-width="4" fill="none" stroke-linecap="round"/>`
-  ).join('');
+  svgEl.setAttribute('data-mode', mode);
 
   const electrodesHtml = ELECTRODES.map(e => {
     const isChest = e.id.startsWith('V');
-    const r = isChest ? 11 : 14;
-    const fs = isChest ? 9 : 10;
+    const r = isChest ? 13 : 17;
+    const fs = isChest ? 8 : 9;
     return `<g class="electrode-target" id="pad-${e.id}-${mode}">
       <circle cx="${e.x}" cy="${e.y}" r="${r}" class="electrode-pad" id="circle-${e.id}-${mode}"/>
       <text x="${e.x}" y="${e.y}" text-anchor="middle" dominant-baseline="middle"
         font-size="${fs}" font-weight="700" font-family="system-ui,sans-serif"
-        fill="#4a5568" pointer-events="none">${e.id}</text>
+        fill="#1a1a1a" pointer-events="none" class="electrode-label">${e.id}</text>
     </g>`;
   }).join('');
 
   svgEl.innerHTML = `
-    <!-- Legs -->
-    <rect x="100" y="340" width="46" height="130" rx="10" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
-    <rect x="174" y="340" width="46" height="130" rx="10" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
-    <!-- Arms -->
-    <rect x="30" y="128" width="36" height="114" rx="10" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
-    <rect x="254" y="128" width="36" height="114" rx="10" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
-    <!-- Torso -->
-    <rect x="80" y="100" width="160" height="250" rx="22" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
-    <!-- Shoulder fill -->
-    <rect x="62" y="118" width="196" height="44" rx="16" fill="#f2d9c8" stroke="none"/>
-    <!-- Neck -->
-    <rect x="136" y="68" width="48" height="44" rx="8" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
-    <!-- Head -->
-    <ellipse cx="160" cy="50" rx="34" ry="36" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
-    <!-- Sternum -->
-    <rect x="153" y="128" width="14" height="122" rx="4" fill="#d0cfc8" stroke="#aaa9a0" stroke-width="1"/>
-    <!-- Ribs -->
-    ${ribLines}
-    <!-- Costal margin -->
-    <path d="M104,265 Q130,312 160,322 Q190,312 216,265" stroke="#bfbdb5" stroke-width="4" fill="none" stroke-linecap="round"/>
-    <!-- Electrodes -->
+    <image href="body.jpg" x="0" y="0" width="320" height="530" preserveAspectRatio="xMidYMid meet"/>
     ${electrodesHtml}
   `;
 
   svgEl.querySelectorAll('.electrode-target').forEach(g => {
-    const eid = g.id.replace(`pad-`, '').replace(`-${mode}`, '');
+    const eid = g.id.replace('pad-', '').replace(`-${mode}`, '');
     g.addEventListener('click', () => handleElectrodeTap(eid, mode));
     g.addEventListener('touchend', ev => { ev.preventDefault(); handleElectrodeTap(eid, mode); });
   });
@@ -1007,63 +983,21 @@ function showLandmarkInfo(id) {
 function buildLandmarkBody() {
   const svg = document.getElementById('body-svg-landmarks');
 
-  const ribLines = [
-    [153,140, 107,158, 167,140, 213,158],
-    [145,157,  91,175, 175,157, 229,175],
-    [135,174,  77,192, 185,174, 243,192],
-    [128,191,  68,209, 192,191, 252,209],
-    [120,208,  62,226, 200,208, 258,226],
-    [116,225,  68,243, 204,225, 252,243],
-  ].map(([xl,yl,x2l,y2l, xr,yr,x2r,y2r]) =>
-    `<path d="M${xl},${yl} Q${(xl+x2l)/2},${yl+8} ${x2l},${y2l}" stroke="#bfbdb5" stroke-width="4" fill="none" stroke-linecap="round"/>
-     <path d="M${xr},${yr} Q${(xr+x2r)/2},${yr+8} ${x2r},${y2r}" stroke="#bfbdb5" stroke-width="4" fill="none" stroke-linecap="round"/>`
-  ).join('');
-
-  /* Anatomical line positions (patient-left = SVG-right side, where V1-V6 are) */
-  const Y_TOP = 102;   /* top of torso */
-  const Y_BOT = 348;   /* bottom of torso */
-
-  /* Midclavicular line: ~x=200 (patient left side) */
-  const X_MKL = 200;
-  /* Anterior axillary line: ~x=218 */
-  const X_AAX = 220;
-  /* Mid axillary line: ~x=234 */
-  const X_MAX = 236;
-  /* Sternal borders */
-  const X_STERN_R = 153; /* right sternal border (patient right = SVG left) */
-  const X_STERN_L = 167; /* left sternal border */
-
-  /* ICS markers: horizontal dashes at ICS4 and ICS5 on patient-left */
-  /* ICS4 ≈ y=200, ICS5 ≈ y=218 */
-  const ICS4_Y = 200;
-  const ICS5_Y = 218;
-
-  /* Klavikel lines */
-  const CLAV_Y = 118;
+  const Y_TOP = 85, Y_BOT = 280;
+  const X_MKL = 178, X_AAX = 191, X_MAX = 203;
+  const X_STERN_R = 133, X_STERN_L = 153;
+  const ICS4_Y = 138, ICS5_Y = 154;
 
   svg.innerHTML = `
-    <!-- Body base -->
-    <rect x="100" y="340" width="46" height="130" rx="10" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
-    <rect x="174" y="340" width="46" height="130" rx="10" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
-    <rect x="30" y="128" width="36" height="114" rx="10" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
-    <rect x="254" y="128" width="36" height="114" rx="10" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
-    <rect x="80" y="100" width="160" height="250" rx="22" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
-    <rect x="62" y="118" width="196" height="44" rx="16" fill="#f2d9c8" stroke="none"/>
-    <rect x="136" y="68" width="48" height="44" rx="8" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
-    <ellipse cx="160" cy="50" rx="34" ry="36" fill="#f2d9c8" stroke="#c4a882" stroke-width="1.5"/>
-    <rect x="153" y="128" width="14" height="122" rx="4" fill="#d0cfc8" stroke="#aaa9a0" stroke-width="1"/>
-    ${ribLines}
-    <path d="M104,265 Q130,312 160,322 Q190,312 216,265" stroke="#bfbdb5" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <image href="body.jpg" x="0" y="0" width="320" height="530" preserveAspectRatio="xMidYMid meet"/>
 
     <!-- ── KLAVIKEL (grå) ── -->
-    <!-- Patient right clavicle -->
-    <path d="M152,${CLAV_Y} Q120,114 66,126" stroke="#636363" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="0" class="lm-clav" style="cursor:pointer"/>
-    <!-- Patient left clavicle -->
-    <path d="M168,${CLAV_Y} Q200,114 254,126" stroke="#636363" stroke-width="3" fill="none" stroke-linecap="round" class="lm-clav" style="cursor:pointer"/>
+    <path d="M${X_STERN_R - 5},90 Q105,82 65,90" stroke="#636363" stroke-width="2.5" fill="none" stroke-linecap="round" class="lm-clav" style="cursor:pointer"/>
+    <path d="M${X_STERN_L + 5},90 Q215,82 255,90" stroke="#636363" stroke-width="2.5" fill="none" stroke-linecap="round" class="lm-clav" style="cursor:pointer"/>
 
     <!-- ── STERNUMKANTER (lila) ── -->
-    <line x1="${X_STERN_R}" y1="128" x2="${X_STERN_R}" y2="${Y_BOT}" stroke="#756bb1" stroke-width="2" stroke-dasharray="6,4" class="lm-stern" style="cursor:pointer"/>
-    <line x1="${X_STERN_L}" y1="128" x2="${X_STERN_L}" y2="${Y_BOT}" stroke="#756bb1" stroke-width="2" stroke-dasharray="6,4" class="lm-stern" style="cursor:pointer"/>
+    <line x1="${X_STERN_R}" y1="${Y_TOP}" x2="${X_STERN_R}" y2="${Y_BOT}" stroke="#756bb1" stroke-width="2" stroke-dasharray="6,4" class="lm-stern" style="cursor:pointer"/>
+    <line x1="${X_STERN_L}" y1="${Y_TOP}" x2="${X_STERN_L}" y2="${Y_BOT}" stroke="#756bb1" stroke-width="2" stroke-dasharray="6,4" class="lm-stern" style="cursor:pointer"/>
     <text x="${X_STERN_R - 3}" y="${Y_TOP + 12}" text-anchor="middle" font-size="7" fill="#756bb1" font-weight="600" pointer-events="none">V1</text>
     <text x="${X_STERN_L + 3}" y="${Y_TOP + 12}" text-anchor="middle" font-size="7" fill="#756bb1" font-weight="600" pointer-events="none">V2</text>
 
@@ -1080,27 +1014,20 @@ function buildLandmarkBody() {
     <text x="${X_MAX + 2}" y="${Y_TOP + 48}" text-anchor="start" font-size="7" fill="#1a9641" font-weight="600" pointer-events="none">MAL</text>
 
     <!-- ── ICS MARKERINGAR (orange) ── -->
-    <!-- ICS 4: horisontell linje vid V1/V2-höjd -->
-    <line x1="82" y1="${ICS4_Y}" x2="238" y2="${ICS4_Y}" stroke="#fd8d3c" stroke-width="1.5" stroke-dasharray="4,4" class="lm-ics" style="cursor:pointer"/>
-    <text x="84" y="${ICS4_Y - 2}" text-anchor="start" font-size="7" fill="#fd8d3c" font-weight="600" pointer-events="none">ICS 4</text>
-    <!-- ICS 5: horisontell linje vid V4/V5/V6-höjd -->
-    <line x1="82" y1="${ICS5_Y}" x2="238" y2="${ICS5_Y}" stroke="#fd8d3c" stroke-width="1.5" stroke-dasharray="4,4" class="lm-ics" style="cursor:pointer"/>
-    <text x="84" y="${ICS5_Y - 2}" text-anchor="start" font-size="7" fill="#fd8d3c" font-weight="600" pointer-events="none">ICS 5</text>
+    <line x1="110" y1="${ICS4_Y}" x2="230" y2="${ICS4_Y}" stroke="#fd8d3c" stroke-width="1.5" stroke-dasharray="4,4" class="lm-ics" style="cursor:pointer"/>
+    <text x="108" y="${ICS4_Y - 2}" text-anchor="end" font-size="7" fill="#fd8d3c" font-weight="600" pointer-events="none">ICS 4</text>
+    <line x1="110" y1="${ICS5_Y}" x2="230" y2="${ICS5_Y}" stroke="#fd8d3c" stroke-width="1.5" stroke-dasharray="4,4" class="lm-ics" style="cursor:pointer"/>
+    <text x="108" y="${ICS5_Y - 2}" text-anchor="end" font-size="7" fill="#fd8d3c" font-weight="600" pointer-events="none">ICS 5</text>
 
     <!-- ── Skärningspunkter (elektrodpositioner) ── -->
-    <!-- V1: ICS4 × höger sternumkant -->
     <circle cx="${X_STERN_R}" cy="${ICS4_Y}" r="5" fill="white" stroke="#756bb1" stroke-width="2"/>
-    <text cx="${X_STERN_R}" cy="${ICS4_Y}" x="${X_STERN_R}" y="${ICS4_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="5" font-weight="800" fill="#756bb1" pointer-events="none">V1</text>
-    <!-- V2: ICS4 × vänster sternumkant -->
+    <text x="${X_STERN_R}" y="${ICS4_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="5" font-weight="800" fill="#756bb1" pointer-events="none">V1</text>
     <circle cx="${X_STERN_L}" cy="${ICS4_Y}" r="5" fill="white" stroke="#756bb1" stroke-width="2"/>
     <text x="${X_STERN_L}" y="${ICS4_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="5" font-weight="800" fill="#756bb1" pointer-events="none">V2</text>
-    <!-- V4: ICS5 × MCL -->
     <circle cx="${X_MKL}" cy="${ICS5_Y}" r="5" fill="white" stroke="#2c7bb6" stroke-width="2"/>
     <text x="${X_MKL}" y="${ICS5_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="5" font-weight="800" fill="#2c7bb6" pointer-events="none">V4</text>
-    <!-- V5: ICS5 × AAL -->
     <circle cx="${X_AAX}" cy="${ICS5_Y}" r="5" fill="white" stroke="#d7191c" stroke-width="2"/>
     <text x="${X_AAX}" y="${ICS5_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="5" font-weight="800" fill="#d7191c" pointer-events="none">V5</text>
-    <!-- V6: ICS5 × MAL -->
     <circle cx="${X_MAX}" cy="${ICS5_Y}" r="5" fill="white" stroke="#1a9641" stroke-width="2"/>
     <text x="${X_MAX}" y="${ICS5_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="5" font-weight="800" fill="#1a9641" pointer-events="none">V6</text>
   `;
