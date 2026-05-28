@@ -706,8 +706,12 @@ function buildBody(svgEl, mode) {
       g.addEventListener('touchend', ev => { ev.preventDefault(); handleElectrodeTap(eid, 'train'); });
     });
   } else if (mode === 'test') {
-    /* pointerup fires exactly once (touch or mouse) — no double-fire risk */
-    svgEl.addEventListener('pointerup', ev => {
+    /* Remove previous listener before adding a new one — prevents accumulation
+       across multiple startTest() calls on the same SVG element */
+    if (svgEl._testHandler) {
+      svgEl.removeEventListener('pointerup', svgEl._testHandler);
+    }
+    svgEl._testHandler = ev => {
       const pt = svgEl.createSVGPoint();
       pt.x = ev.clientX; pt.y = ev.clientY;
       const svgPt = pt.matrixTransform(svgEl.getScreenCTM().inverse());
@@ -719,7 +723,8 @@ function buildBody(svgEl, mode) {
         if (d < bestDist) { bestDist = d; best = e; }
       });
       if (best) handleElectrodeTap(best.id, 'test');
-    });
+    };
+    svgEl.addEventListener('pointerup', svgEl._testHandler);
   }
 }
 
