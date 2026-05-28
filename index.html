@@ -663,10 +663,10 @@
 /* All 10 electrodes in placement order */
 /* Positions calibrated to body.jpg (1069×1769 → viewBox 320×530) */
 const ELECTRODES = [
-  { id: 'RA', label: 'Höger arm (RA)', color: '#e53e3e', desc: 'Handleden, höger arm', hint: 'Röd elektrod — placeras på insidan av höger handled', x: 62,  y: 201 },
-  { id: 'LA', label: 'Vänster arm (LA)', color: '#d69e2e', desc: 'Handleden, vänster arm', hint: 'Gul elektrod — placeras på insidan av vänster handled', x: 261, y: 201 },
-  { id: 'RL', label: 'Höger ben (RL)', color: '#1a202c', desc: 'Vristen, höger ben', hint: 'Svart elektrod — jordelektrod, placeras på insidan av höger vrist', x: 146, y: 457 },
-  { id: 'LL', label: 'Vänster ben (LL)', color: '#38a169', desc: 'Vristen, vänster ben', hint: 'Grön elektrod — placeras på insidan av vänster vrist', x: 174, y: 457 },
+  { id: 'RA', label: 'Röd elektrod', color: '#e53e3e', desc: 'Höger handled — insidan av handleden', hint: 'Kopplas till insidan av höger handled', x: 62,  y: 201 },
+  { id: 'LA', label: 'Gul elektrod', color: '#d69e2e', desc: 'Vänster handled — insidan av handleden', hint: 'Kopplas till insidan av vänster handled', x: 261, y: 201 },
+  { id: 'RL', label: 'Svart elektrod', color: '#1a202c', desc: 'Höger vrist — jordelektrod', hint: 'Jordelektrod — kopplas till insidan av höger vrist', x: 146, y: 457 },
+  { id: 'LL', label: 'Grön elektrod', color: '#38a169', desc: 'Vänster vrist — insidan av vristen', hint: 'Kopplas till insidan av vänster vrist', x: 174, y: 457 },
   { id: 'V1', label: 'V1', color: '#e53e3e', desc: 'I 4:e revbensmellanrummet vid högra bröstbenskanten', hint: 'Känn längs höger sternumkant — mellanrummet under 4:e revbenet', x: 155, y: 81 },
   { id: 'V2', label: 'V2', color: '#d69e2e', desc: 'I 4:e revbensmellanrummet vid vänstra bröstbenskanten', hint: 'Samma höjd som V1, spegelvänds till vänster sternumkant', x: 169, y: 81 },
   { id: 'V4', label: 'V4', color: '#744210', desc: 'I 5:e revbensmellanrummet i medioklavikularlinjen', hint: 'Ungefär vid bröstvårtan — 5:e ICS längs midklavikulärlinjen', x: 188, y: 92 },
@@ -706,12 +706,10 @@ function buildBody(svgEl, mode) {
       g.addEventListener('touchend', ev => { ev.preventDefault(); handleElectrodeTap(eid, 'train'); });
     });
   } else if (mode === 'test') {
-    /* Nearest-centre logic: tap anywhere → resolve to closest unplaced electrode */
-    const onTap = (ev) => {
-      if (ev.type === 'touchend') ev.preventDefault();
-      const src = ev.changedTouches ? ev.changedTouches[0] : ev;
+    /* pointerup fires exactly once (touch or mouse) — no double-fire risk */
+    svgEl.addEventListener('pointerup', ev => {
       const pt = svgEl.createSVGPoint();
-      pt.x = src.clientX; pt.y = src.clientY;
+      pt.x = ev.clientX; pt.y = ev.clientY;
       const svgPt = pt.matrixTransform(svgEl.getScreenCTM().inverse());
       const placedIds = new Set(testOrder.slice(0, testCurrentIdx).map(t => t.id));
       let best = null, bestDist = Infinity;
@@ -721,9 +719,7 @@ function buildBody(svgEl, mode) {
         if (d < bestDist) { bestDist = d; best = e; }
       });
       if (best) handleElectrodeTap(best.id, 'test');
-    };
-    svgEl.addEventListener('click', onTap);
-    svgEl.addEventListener('touchend', onTap);
+    });
   }
 }
 
@@ -928,23 +924,21 @@ function handleTestTap(id) {
 
 function showTestResult() {
   const total = ELECTRODES.length;
+  const passed = testWrongCount === 0;
 
   _animateVB('body-svg-test', VB_FULL);
   document.getElementById('test-instruction-panel').style.display = 'none';
   document.getElementById('test-result').classList.add('visible');
 
-  const icon  = testWrongCount === 0 ? '🏆' : testWrongCount <= 3 ? '👍' : '📚';
-  const title = testWrongCount === 0 ? 'Perfekt!' : testWrongCount <= 3 ? 'Bra jobbat!' : 'Fortsätt träna';
-  document.getElementById('test-result-icon').textContent  = icon;
-  document.getElementById('test-result-title').textContent = title;
-  document.getElementById('test-result-score').textContent = `${total}/${total}`;
-  document.getElementById('test-result-sub').textContent   = testWrongCount === 0
-    ? 'Alla elektroder placerade utan fel!'
-    : `Du gjorde ${testWrongCount} fel försök.`;
+  document.getElementById('test-result-icon').textContent  = passed ? '🏆' : '❌';
+  document.getElementById('test-result-title').textContent = passed ? 'Godkänt!' : 'Inte godkänt';
+  document.getElementById('test-result-score').textContent = passed ? '0 fel' : `${testWrongCount} fel`;
+  document.getElementById('test-result-sub').textContent   = passed
+    ? 'Alla elektroder placerade rätt på första försöket!'
+    : `Alla ${total} elektroder måste placeras rätt på första försöket.`;
 
-  saveTestScore(total - Math.min(testWrongCount, total), total);
-  if (testWrongCount === 0) saveAchievement('test_perfect');
-  if (testWrongCount <= 3) saveAchievement('test_pass');
+  saveTestScore(passed ? total : 0, total);
+  if (passed) { saveAchievement('test_perfect'); saveAchievement('test_pass'); }
 }
 
 /* ═══════════════════════════════════════════════════════
