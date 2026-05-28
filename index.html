@@ -867,10 +867,7 @@ function startTest() {
 
 function updateTestUI() {
   const placed = testCurrentIdx;
-  const pct = Math.round((placed / ELECTRODES.length) * 100);
   document.getElementById('test-counter').textContent = `${placed} / ${ELECTRODES.length}`;
-  document.getElementById('test-step-label').textContent = `${placed} av ${ELECTRODES.length} placerade`;
-  document.getElementById('test-progress').style.width = pct + '%';
   document.getElementById('test-wrong-label').textContent =
     testWrongCount > 0 ? `${testWrongCount} fel försök` : '';
 
