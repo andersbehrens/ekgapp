@@ -704,7 +704,7 @@ function buildBody(svgEl, mode) {
     </g>`;
   }).join('');
 
-  const imgSrc = mode === 'test' ? 'body-clean.jpg' : 'body.jpg';
+  const imgSrc = 'body.jpg';
   svgEl.innerHTML = `
     <image href="${imgSrc}" x="0" y="0" width="320" height="530" preserveAspectRatio="xMidYMid meet"/>
     ${electrodesHtml}
