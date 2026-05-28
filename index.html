@@ -201,8 +201,8 @@
 
     .body-svg {
       width: 100%;
-      max-width: 360px;
-      max-height: calc(100vh - 280px);
+      max-width: 400px;
+      max-height: calc(100vh - 180px);
       touch-action: none;
       display: block;
     }
@@ -420,6 +420,11 @@
     svg[data-mode="test"] .electrode-label { display: none; }
     svg[data-mode="test"] .electrode-pad.placed-correct { fill: rgba(76,175,130,0.85); stroke: #2e7d5a; }
 
+    /* Training mode: only show active + done electrodes */
+    svg[data-mode="train"] .electrode-target { opacity: 0; pointer-events: none; }
+    svg[data-mode="train"] .electrode-target[data-state="active"] { opacity: 1; pointer-events: all; }
+    svg[data-mode="train"] .electrode-target[data-state="done"] { opacity: 1; pointer-events: none; }
+
     /* ── Landmarks legend ── */
     .legend-item {
       display: flex;
@@ -464,7 +469,7 @@
 
     /* ── Responsive ── */
     @media (min-height: 700px) {
-      .body-svg { max-height: calc(100vh - 260px); }
+      .body-svg { max-height: calc(100vh - 160px); }
     }
   </style>
 </head>
@@ -549,7 +554,7 @@
         </div>
       </div>
       <div class="body-container">
-        <svg id="body-svg-train" class="body-svg" viewBox="0 0 320 530" xmlns="http://www.w3.org/2000/svg"></svg>
+        <svg id="body-svg-train" class="body-svg" viewBox="40 0 240 490" xmlns="http://www.w3.org/2000/svg"></svg>
       </div>
       <div class="result-panel" id="train-result">
         <div class="result-icon">🎉</div>
@@ -574,10 +579,16 @@
         <div class="progress-bar"><div class="progress-fill" id="test-progress" style="width:0%"></div></div>
       </div>
       <div class="body-container">
-        <svg id="body-svg-test" class="body-svg" viewBox="0 0 320 530" xmlns="http://www.w3.org/2000/svg"></svg>
+        <svg id="body-svg-test" class="body-svg" viewBox="40 0 240 490" xmlns="http://www.w3.org/2000/svg"></svg>
       </div>
-      <div class="instruction-panel">
-        <div class="test-hint">Tryck på rätt ställen för att placera elektroderna — ingen ledtråd ges.</div>
+      <div class="instruction-panel" id="test-instruction-panel">
+        <div class="instruction-card">
+          <div class="instruction-dot" id="test-dot"></div>
+          <div class="instruction-text">
+            <div class="lead-name" id="test-lead-text">—</div>
+            <div class="lead-hint" id="test-wrong-label" style="color:#e05c5c;min-height:16px;"></div>
+          </div>
+        </div>
       </div>
       <div class="result-panel" id="test-result">
         <div class="result-icon" id="test-result-icon">🏆</div>
@@ -598,7 +609,7 @@
     </div>
     <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
       <div class="body-container" style="flex:1;">
-        <svg id="body-svg-landmarks" class="body-svg" viewBox="0 0 320 530" xmlns="http://www.w3.org/2000/svg"></svg>
+        <svg id="body-svg-landmarks" class="body-svg" viewBox="40 0 240 490" xmlns="http://www.w3.org/2000/svg"></svg>
       </div>
       <div id="landmark-info-panel" style="background:var(--surface); border-top:1px solid var(--border); padding:14px 20px; min-height:90px;">
         <div id="landmark-info-content">
@@ -657,16 +668,16 @@
 /* All 10 electrodes in placement order */
 /* Positions calibrated to body.jpg (1069×1769 → viewBox 320×530) */
 const ELECTRODES = [
-  { id: 'RA', label: 'Höger arm (RA)', color: '#e53e3e', desc: 'Handleden, höger arm', hint: 'Röd elektrod — placeras på insidan av höger handled', x: 37,  y: 207 },
-  { id: 'LA', label: 'Vänster arm (LA)', color: '#d69e2e', desc: 'Handleden, vänster arm', hint: 'Gul elektrod — placeras på insidan av vänster handled', x: 284, y: 207 },
-  { id: 'RL', label: 'Höger ben (RL)', color: '#1a202c', desc: 'Vristen, höger ben', hint: 'Svart elektrod — jordelektrod, placeras på insidan av höger vrist', x: 134, y: 447 },
-  { id: 'LL', label: 'Vänster ben (LL)', color: '#38a169', desc: 'Vristen, vänster ben', hint: 'Grön elektrod — placeras på insidan av vänster vrist', x: 170, y: 447 },
-  { id: 'V1', label: 'V1', color: '#e53e3e', desc: '4:e revbensmellanrummet, höger om bröstbenet', hint: 'Parasternalt höger, 4:e ICS', x: 133, y: 138 },
-  { id: 'V2', label: 'V2', color: '#d69e2e', desc: '4:e revbensmellanrummet, vänster om bröstbenet', hint: 'Parasternalt vänster, 4:e ICS', x: 153, y: 138 },
-  { id: 'V4', label: 'V4', color: '#744210', desc: '5:e revbensmellanrummet, midklavikulärlinjen', hint: 'Ungefär vid bröstvårtan, 5:e ICS', x: 178, y: 154 },
-  { id: 'V3', label: 'V3', color: '#38a169', desc: 'Mellan V2 och V4', hint: '💡 Tips: Placera V3 mitt emellan V2 och V4 — diagonalt ned mot bröstvårtan', x: 166, y: 147 },
-  { id: 'V5', label: 'V5', color: '#1a202c', desc: 'Anteriora axillarlinjen, samma nivå som V4', hint: 'Samma höjd som V4, mot armhålan', x: 191, y: 159 },
-  { id: 'V6', label: 'V6', color: '#553c9a', desc: 'Mediala axillarlinjen, samma nivå som V4–V5', hint: 'Mitt i armhålan, samma höjd som V4 och V5', x: 203, y: 161 },
+  { id: 'RA', label: 'Höger arm (RA)', color: '#e53e3e', desc: 'Handleden, höger arm', hint: 'Röd elektrod — placeras på insidan av höger handled', x: 62,  y: 201 },
+  { id: 'LA', label: 'Vänster arm (LA)', color: '#d69e2e', desc: 'Handleden, vänster arm', hint: 'Gul elektrod — placeras på insidan av vänster handled', x: 261, y: 201 },
+  { id: 'RL', label: 'Höger ben (RL)', color: '#1a202c', desc: 'Vristen, höger ben', hint: 'Svart elektrod — jordelektrod, placeras på insidan av höger vrist', x: 146, y: 457 },
+  { id: 'LL', label: 'Vänster ben (LL)', color: '#38a169', desc: 'Vristen, vänster ben', hint: 'Grön elektrod — placeras på insidan av vänster vrist', x: 174, y: 457 },
+  { id: 'V1', label: 'V1', color: '#e53e3e', desc: '4:e revbensmellanrummet, höger om bröstbenet', hint: 'Parasternalt höger, 4:e ICS', x: 155, y: 81 },
+  { id: 'V2', label: 'V2', color: '#d69e2e', desc: '4:e revbensmellanrummet, vänster om bröstbenet', hint: 'Parasternalt vänster, 4:e ICS', x: 169, y: 81 },
+  { id: 'V4', label: 'V4', color: '#744210', desc: '5:e revbensmellanrummet, midklavikulärlinjen', hint: 'Ungefär vid bröstvårtan, 5:e ICS', x: 188, y: 92 },
+  { id: 'V3', label: 'V3', color: '#38a169', desc: 'Mellan V2 och V4', hint: '💡 Tips: Placera V3 mitt emellan V2 och V4 — diagonalt ned mot bröstvårtan', x: 178, y: 88 },
+  { id: 'V5', label: 'V5', color: '#1a202c', desc: 'Anteriora axillarlinjen, samma nivå som V4', hint: 'Samma höjd som V4, mot armhålan', x: 202, y: 96 },
+  { id: 'V6', label: 'V6', color: '#553c9a', desc: 'Mediala axillarlinjen, samma nivå som V4–V5', hint: 'Mitt i armhålan, samma höjd som V4 och V5', x: 210, y: 96 },
 ];
 
 /* ═══════════════════════════════════════════════════════
@@ -678,9 +689,11 @@ function buildBody(svgEl, mode) {
 
   const electrodesHtml = ELECTRODES.map(e => {
     const isChest = e.id.startsWith('V');
-    const r = isChest ? 13 : 17;
-    const fs = isChest ? 8 : 9;
+    const r = isChest ? 8 : 14;
+    const fs = isChest ? 7 : 8;
+    const hitR = mode === 'test' ? r + 8 : 0;
     return `<g class="electrode-target" id="pad-${e.id}-${mode}">
+      ${hitR ? `<circle cx="${e.x}" cy="${e.y}" r="${hitR}" fill="transparent" stroke="none"/>` : ''}
       <circle cx="${e.x}" cy="${e.y}" r="${r}" class="electrode-pad" id="circle-${e.id}-${mode}"/>
       <text x="${e.x}" y="${e.y}" text-anchor="middle" dominant-baseline="middle"
         font-size="${fs}" font-weight="700" font-family="system-ui,sans-serif"
@@ -688,8 +701,9 @@ function buildBody(svgEl, mode) {
     </g>`;
   }).join('');
 
+  const imgSrc = mode === 'test' ? 'body-clean.jpg' : 'body.jpg';
   svgEl.innerHTML = `
-    <image href="body.jpg" x="0" y="0" width="320" height="530" preserveAspectRatio="xMidYMid meet"/>
+    <image href="${imgSrc}" x="0" y="0" width="320" height="530" preserveAspectRatio="xMidYMid meet"/>
     ${electrodesHtml}
   `;
 
@@ -698,6 +712,44 @@ function buildBody(svgEl, mode) {
     g.addEventListener('click', () => handleElectrodeTap(eid, mode));
     g.addEventListener('touchend', ev => { ev.preventDefault(); handleElectrodeTap(eid, mode); });
   });
+}
+
+/* ═══════════════════════════════════════════════════════
+   VIEWBOX ZOOM ANIMATION
+═══════════════════════════════════════════════════════ */
+
+const VB_FULL  = [40, 0, 240, 490];
+const VB_TORSO = [108, 32, 138, 125];
+
+const _vbNow = {};   // svgId → current [x,y,w,h]
+const _vbRaf = {};   // svgId → rAF handle
+
+function _animateVB(svgId, target, ms) {
+  ms = ms !== undefined ? ms : 360;
+  const el = document.getElementById(svgId);
+  if (!el) return;
+  if (!_vbNow[svgId]) _vbNow[svgId] = [...VB_FULL];
+  const from = [..._vbNow[svgId]];
+  if (from.every((v, i) => Math.abs(v - target[i]) < 0.3)) return;
+  if (_vbRaf[svgId]) cancelAnimationFrame(_vbRaf[svgId]);
+  const t0 = performance.now();
+  function step(t) {
+    const p = Math.min((t - t0) / ms, 1);
+    const e = p < 0.5 ? 2*p*p : -1 + (4 - 2*p)*p;
+    const vb = from.map((v, i) => v + (target[i] - v) * e);
+    el.setAttribute('viewBox', vb.map(n => n.toFixed(2)).join(' '));
+    if (p < 1) {
+      _vbRaf[svgId] = requestAnimationFrame(step);
+    } else {
+      _vbNow[svgId] = [...target];
+      _vbRaf[svgId] = null;
+    }
+  }
+  _vbRaf[svgId] = requestAnimationFrame(step);
+}
+
+function _zoomFor(svgId, electrode) {
+  _animateVB(svgId, electrode && electrode.id.startsWith('V') ? VB_TORSO : VB_FULL);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -710,22 +762,25 @@ let trainPlaced = [];
 function startTraining() {
   trainStep = 0;
   trainPlaced = [];
+  _vbNow['body-svg-train'] = [...VB_FULL];
   showScreen('training-screen');
   document.getElementById('train-instruction').style.display = '';
   document.getElementById('train-result').classList.remove('visible');
   buildBody(document.getElementById('body-svg-train'), 'train');
+  document.getElementById('body-svg-train').setAttribute('viewBox', VB_FULL.join(' '));
   updateTrainUI();
 }
 
 function updateTrainUI() {
   if (trainStep >= ELECTRODES.length) {
-    // All done
+    _animateVB('body-svg-train', VB_FULL);
     document.getElementById('train-instruction').style.display = 'none';
     document.getElementById('train-result').classList.add('visible');
     saveAchievement('training_complete');
     return;
   }
   const e = ELECTRODES[trainStep];
+  _zoomFor('body-svg-train', e);
   const pct = Math.round((trainStep / ELECTRODES.length) * 100);
 
   document.getElementById('train-counter').textContent = `${trainStep + 1} / ${ELECTRODES.length}`;
@@ -737,15 +792,22 @@ function updateTrainUI() {
   document.getElementById('train-lead-hint').textContent = e.hint;
   document.getElementById('train-dot').style.background = e.color;
 
-  /* Highlight current target */
+  /* Update each electrode's state */
   ELECTRODES.forEach((ed, i) => {
+    const g = document.getElementById(`pad-${ed.id}-train`);
     const circle = document.getElementById(`circle-${ed.id}-train`);
-    if (!circle) return;
+    if (!g || !circle) return;
+    const isChest = ed.id.startsWith('V');
     if (trainPlaced.includes(ed.id)) {
+      g.setAttribute('data-state', 'done');
+      circle.setAttribute('r', isChest ? 5 : 8);
       circle.className.baseVal = 'electrode-pad placed-correct';
     } else if (i === trainStep) {
+      g.setAttribute('data-state', 'active');
+      circle.setAttribute('r', isChest ? 13 : 17);
       circle.className.baseVal = 'electrode-pad highlight';
     } else {
+      g.setAttribute('data-state', 'future');
       circle.className.baseVal = 'electrode-pad';
     }
   });
@@ -776,69 +838,95 @@ function handleElectrodeTap(id, mode) {
    TEST MODE
 ═══════════════════════════════════════════════════════ */
 
-let testPlaced = [];
-let testCorrect = 0;
-let testWrong = 0;
+const COLOR_NAMES = {
+  '#e53e3e': 'röda', '#d69e2e': 'gula',
+  '#1a202c': 'svarta', '#38a169': 'gröna'
+};
+
 let testOrder = [];
 let testCurrentIdx = 0;
+let testWrongCount = 0;
 
 function startTest() {
-  testPlaced = [];
-  testCorrect = 0;
-  testWrong = 0;
+  const limb  = ELECTRODES.filter(e => !e.id.startsWith('V')).sort(() => Math.random() - 0.5);
+  const chest = ELECTRODES.filter(e =>  e.id.startsWith('V')).sort(() => Math.random() - 0.5);
+  testOrder = [...limb, ...chest];
   testCurrentIdx = 0;
-  /* Randomize order */
-  testOrder = [...ELECTRODES].sort(() => Math.random() - 0.5);
+  testWrongCount = 0;
 
+  _vbNow['body-svg-test'] = [...VB_FULL];
   showScreen('test-screen');
-  document.querySelector('#test-screen .instruction-panel').style.display = '';
+  document.getElementById('test-instruction-panel').style.display = '';
   document.getElementById('test-result').classList.remove('visible');
   buildBody(document.getElementById('body-svg-test'), 'test');
+  document.getElementById('body-svg-test').setAttribute('viewBox', VB_FULL.join(' '));
   updateTestUI();
 }
 
 function updateTestUI() {
-  const placed = testPlaced.length;
+  const placed = testCurrentIdx;
   const pct = Math.round((placed / ELECTRODES.length) * 100);
   document.getElementById('test-counter').textContent = `${placed} / ${ELECTRODES.length}`;
-  document.getElementById('test-step-label').textContent = `${placed} av ${ELECTRODES.length} elektroder placerade`;
+  document.getElementById('test-step-label').textContent = `${placed} av ${ELECTRODES.length} placerade`;
   document.getElementById('test-progress').style.width = pct + '%';
+  document.getElementById('test-wrong-label').textContent =
+    testWrongCount > 0 ? `${testWrongCount} fel försök` : '';
+
+  if (testCurrentIdx >= testOrder.length) return;
+  const e = testOrder[testCurrentIdx];
+  const isChest = e.id.startsWith('V');
+  const text = isChest
+    ? `Placera ${e.id}`
+    : `Placera den ${COLOR_NAMES[e.color] || ''} elektroden`;
+
+  document.getElementById('test-dot').style.background = e.color;
+  document.getElementById('test-lead-text').textContent = text;
+
+  _zoomFor('body-svg-test', e);
 }
 
 function handleTestTap(id) {
-  if (testPlaced.includes(id)) return;
-  testPlaced.push(id);
+  if (testCurrentIdx >= testOrder.length) return;
+  const expected = testOrder[testCurrentIdx];
   const circle = document.getElementById(`circle-${id}-test`);
-  // Always mark as placed (user can't know if wrong in test)
-  circle.className.baseVal = 'electrode-pad placed-correct';
-  testCorrect++; // In this version, placement is always accepted (position is fixed anyway)
-  updateTestUI();
 
-  if (testPlaced.length === ELECTRODES.length) {
-    setTimeout(showTestResult, 500);
+  if (id === expected.id) {
+    if (circle) circle.className.baseVal = 'electrode-pad placed-correct';
+    testCurrentIdx++;
+    if (testCurrentIdx >= testOrder.length) {
+      setTimeout(showTestResult, 500);
+    } else {
+      setTimeout(updateTestUI, 350);
+    }
+  } else {
+    testWrongCount++;
+    if (circle) {
+      circle.className.baseVal = 'electrode-pad placed-wrong';
+      setTimeout(() => { if (circle) circle.className.baseVal = 'electrode-pad'; }, 600);
+    }
+    document.getElementById('test-wrong-label').textContent = `${testWrongCount} fel försök`;
   }
 }
 
 function showTestResult() {
-  const score = testCorrect;
   const total = ELECTRODES.length;
-  const pct = Math.round((score / total) * 100);
 
-  document.querySelector('#test-screen .instruction-panel').style.display = 'none';
-  const resultEl = document.getElementById('test-result');
-  resultEl.classList.add('visible');
+  _animateVB('body-svg-test', VB_FULL);
+  document.getElementById('test-instruction-panel').style.display = 'none';
+  document.getElementById('test-result').classList.add('visible');
 
-  document.getElementById('test-result-icon').textContent = pct === 100 ? '🏆' : pct >= 70 ? '👍' : '📚';
-  document.getElementById('test-result-title').textContent = pct === 100 ? 'Perfekt!' : pct >= 70 ? 'Godkänt' : 'Fortsätt träna';
-  document.getElementById('test-result-score').textContent = `${score}/${total}`;
-  document.getElementById('test-result-sub').textContent =
-    pct === 100 ? 'Alla elektroder placerade korrekt!' :
-    pct >= 70 ? 'Bra resultat! Träna mer för att bli ännu bättre.' :
-    'Öva mer i träningsläget och försök igen.';
+  const icon  = testWrongCount === 0 ? '🏆' : testWrongCount <= 3 ? '👍' : '📚';
+  const title = testWrongCount === 0 ? 'Perfekt!' : testWrongCount <= 3 ? 'Bra jobbat!' : 'Fortsätt träna';
+  document.getElementById('test-result-icon').textContent  = icon;
+  document.getElementById('test-result-title').textContent = title;
+  document.getElementById('test-result-score').textContent = `${total}/${total}`;
+  document.getElementById('test-result-sub').textContent   = testWrongCount === 0
+    ? 'Alla elektroder placerade utan fel!'
+    : `Du gjorde ${testWrongCount} fel försök.`;
 
-  if (pct === 100) saveAchievement('test_perfect');
-  if (pct >= 70) saveAchievement('test_pass');
-  saveTestScore(score, total);
+  saveTestScore(total - Math.min(testWrongCount, total), total);
+  if (testWrongCount === 0) saveAchievement('test_perfect');
+  if (testWrongCount <= 3) saveAchievement('test_pass');
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -983,17 +1071,17 @@ function showLandmarkInfo(id) {
 function buildLandmarkBody() {
   const svg = document.getElementById('body-svg-landmarks');
 
-  const Y_TOP = 85, Y_BOT = 280;
-  const X_MKL = 178, X_AAX = 191, X_MAX = 203;
-  const X_STERN_R = 133, X_STERN_L = 153;
-  const ICS4_Y = 138, ICS5_Y = 154;
+  const Y_TOP = 68, Y_BOT = 230;
+  const X_MKL = 188, X_AAX = 202, X_MAX = 210;
+  const X_STERN_R = 155, X_STERN_L = 169;
+  const ICS4_Y = 81, ICS5_Y = 92;
 
   svg.innerHTML = `
     <image href="body.jpg" x="0" y="0" width="320" height="530" preserveAspectRatio="xMidYMid meet"/>
 
     <!-- ── KLAVIKEL (grå) ── -->
-    <path d="M${X_STERN_R - 5},90 Q105,82 65,90" stroke="#636363" stroke-width="2.5" fill="none" stroke-linecap="round" class="lm-clav" style="cursor:pointer"/>
-    <path d="M${X_STERN_L + 5},90 Q215,82 255,90" stroke="#636363" stroke-width="2.5" fill="none" stroke-linecap="round" class="lm-clav" style="cursor:pointer"/>
+    <path d="M${X_STERN_R - 3},96 Q108,88 70,95" stroke="#636363" stroke-width="2.5" fill="none" stroke-linecap="round" class="lm-clav" style="cursor:pointer"/>
+    <path d="M${X_STERN_L + 3},96 Q212,88 250,95" stroke="#636363" stroke-width="2.5" fill="none" stroke-linecap="round" class="lm-clav" style="cursor:pointer"/>
 
     <!-- ── STERNUMKANTER (lila) ── -->
     <line x1="${X_STERN_R}" y1="${Y_TOP}" x2="${X_STERN_R}" y2="${Y_BOT}" stroke="#756bb1" stroke-width="2" stroke-dasharray="6,4" class="lm-stern" style="cursor:pointer"/>
@@ -1014,10 +1102,10 @@ function buildLandmarkBody() {
     <text x="${X_MAX + 2}" y="${Y_TOP + 48}" text-anchor="start" font-size="7" fill="#1a9641" font-weight="600" pointer-events="none">MAL</text>
 
     <!-- ── ICS MARKERINGAR (orange) ── -->
-    <line x1="110" y1="${ICS4_Y}" x2="230" y2="${ICS4_Y}" stroke="#fd8d3c" stroke-width="1.5" stroke-dasharray="4,4" class="lm-ics" style="cursor:pointer"/>
-    <text x="108" y="${ICS4_Y - 2}" text-anchor="end" font-size="7" fill="#fd8d3c" font-weight="600" pointer-events="none">ICS 4</text>
-    <line x1="110" y1="${ICS5_Y}" x2="230" y2="${ICS5_Y}" stroke="#fd8d3c" stroke-width="1.5" stroke-dasharray="4,4" class="lm-ics" style="cursor:pointer"/>
-    <text x="108" y="${ICS5_Y - 2}" text-anchor="end" font-size="7" fill="#fd8d3c" font-weight="600" pointer-events="none">ICS 5</text>
+    <line x1="115" y1="${ICS4_Y}" x2="240" y2="${ICS4_Y}" stroke="#fd8d3c" stroke-width="1.5" stroke-dasharray="4,4" class="lm-ics" style="cursor:pointer"/>
+    <text x="113" y="${ICS4_Y - 2}" text-anchor="end" font-size="7" fill="#fd8d3c" font-weight="600" pointer-events="none">ICS 4</text>
+    <line x1="115" y1="${ICS5_Y}" x2="240" y2="${ICS5_Y}" stroke="#fd8d3c" stroke-width="1.5" stroke-dasharray="4,4" class="lm-ics" style="cursor:pointer"/>
+    <text x="113" y="${ICS5_Y - 2}" text-anchor="end" font-size="7" fill="#fd8d3c" font-weight="600" pointer-events="none">ICS 5</text>
 
     <!-- ── Skärningspunkter (elektrodpositioner) ── -->
     <circle cx="${X_STERN_R}" cy="${ICS4_Y}" r="5" fill="white" stroke="#756bb1" stroke-width="2"/>

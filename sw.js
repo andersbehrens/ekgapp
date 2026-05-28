@@ -1,10 +1,11 @@
-const CACHE_NAME = 'ekg-app-v3';
+const CACHE_NAME = 'ekg-app-v11';
 const BASE = self.location.pathname.replace(/\/sw\.js$/, '');
 const ASSETS = [
   BASE + '/',
   BASE + '/index.html',
   BASE + '/manifest.json',
-  BASE + '/body.jpg'
+  BASE + '/body.jpg',
+  BASE + '/body-clean.jpg'
 ];
 
 self.addEventListener('install', e => {
