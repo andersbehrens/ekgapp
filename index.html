@@ -473,6 +473,54 @@
       line-height: 1.5;
     }
 
+    /* ── Quiz ── */
+    .quiz-question {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1.5;
+      box-shadow: var(--shadow);
+    }
+    .quiz-image {
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .quiz-opts { display: flex; flex-direction: column; gap: 10px; }
+    .quiz-opt {
+      padding: 14px 16px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 15px;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.15s;
+      line-height: 1.4;
+    }
+    .quiz-opt:active { background: var(--accent-light); }
+    .quiz-opt.correct { background: var(--success-light); border-color: #4caf82; color: var(--success); font-weight: 600; }
+    .quiz-opt.wrong   { background: #fde8e8; border-color: #e05c5c; color: var(--error); }
+
+    /* ── Hemskärms-stjärnor ── */
+    .star-strip { display: flex; gap: 12px; margin-bottom: 24px; }
+    .star-card {
+      flex: 1;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 8px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+    .star-card.earned { background: #fffbeb; border-color: #f0b429; }
+    .star-card-icon { font-size: 30px; line-height: 1.2; }
+    .star-card-label { font-size: 12px; font-weight: 600; margin-top: 4px; color: var(--text-muted); }
+    .star-card.earned .star-card-label { color: #92610d; }
+
     /* ── Responsive ── */
   </style>
 </head>
@@ -489,6 +537,16 @@
       </svg>
       <h1>EKG Träning</h1>
       <p>Elektrodplacering för sjuksköterskor</p>
+    </div>
+    <div class="star-strip">
+      <div class="star-card" id="star-card-test">
+        <div class="star-card-icon">☆</div>
+        <div class="star-card-label">Test</div>
+      </div>
+      <div class="star-card" id="star-card-quiz">
+        <div class="star-card-icon">☆</div>
+        <div class="star-card-label">Quiz</div>
+      </div>
     </div>
     <div class="main-menu">
       <button class="menu-btn" onclick="startTraining()">
@@ -507,11 +565,11 @@
         </div>
         <span class="menu-btn-arrow">›</span>
       </button>
-      <button class="menu-btn" onclick="showLandmarks()">
-        <div class="menu-btn-icon teal">🫁</div>
+      <button class="menu-btn" onclick="startQuiz()">
+        <div class="menu-btn-icon teal">📝</div>
         <div class="menu-btn-text">
-          <strong>Anatomiska landmärken</strong>
-          <span>Linjer och referenspunkter för EKG</span>
+          <strong>Quiz</strong>
+          <span>10 frågor om elektrodplacering</span>
         </div>
         <span class="menu-btn-arrow">›</span>
       </button>
@@ -596,29 +654,22 @@
     </div>
   </div>
 
-  <!-- ANATOMISKA LANDMÄRKEN -->
-  <div id="landmarks-screen" class="screen">
+  <!-- QUIZ -->
+  <div id="quiz-screen" class="screen">
     <div class="header">
       <button class="btn-back" onclick="goHome()">‹</button>
-      <h1>Anatomiska landmärken</h1>
+      <h1>Quiz</h1>
+      <span class="header-badge" id="quiz-counter">1 / 10</span>
     </div>
-    <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
-      <div class="body-container" style="flex:1;">
-        <svg id="body-svg-landmarks" class="body-svg" width="320" height="530" viewBox="40 0 240 490" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"></svg>
-      </div>
-      <div id="landmark-info-panel" style="background:var(--surface); border-top:1px solid var(--border); padding:14px 20px; min-height:90px;">
-        <div id="landmark-info-content">
-          <div style="font-size:13px; color:var(--text-muted); text-align:center; padding-top:8px;">Tryck på en linje eller punkt för mer information</div>
-        </div>
-      </div>
-      <!-- Legend -->
-      <div style="background:var(--bg); border-top:1px solid var(--border); padding:10px 20px; display:flex; flex-wrap:wrap; gap:8px 16px;">
-        <div class="legend-item" onclick="showLandmarkInfo('mklav')"><span style="background:#2c7bb6"></span>Midklavikulärlinje</div>
-        <div class="legend-item" onclick="showLandmarkInfo('aax')"><span style="background:#d7191c"></span>Ant. axillarlinje</div>
-        <div class="legend-item" onclick="showLandmarkInfo('max')"><span style="background:#1a9641"></span>Med. axillarlinje</div>
-        <div class="legend-item" onclick="showLandmarkInfo('stern')"><span style="background:#756bb1"></span>Sternumkant</div>
-        <div class="legend-item" onclick="showLandmarkInfo('ics')"><span style="background:#fd8d3c"></span>Revbensmellanrum</div>
-        <div class="legend-item" onclick="showLandmarkInfo('clav')"><span style="background:#636363"></span>Klavikel</div>
+    <div style="flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:14px;">
+      <div id="quiz-body"></div>
+      <div class="result-panel" id="quiz-result">
+        <div class="result-icon" id="quiz-result-icon">🏆</div>
+        <div class="result-title" id="quiz-result-title">Godkänt!</div>
+        <div class="result-score" id="quiz-result-score">0 fel</div>
+        <div class="result-subtitle" id="quiz-result-sub">Alla frågor rätt!</div>
+        <button class="btn-primary" onclick="startQuiz()">Försök igen</button>
+        <button class="btn-secondary" onclick="goHome()">Hem</button>
       </div>
     </div>
   </div>
@@ -955,6 +1006,7 @@ const ACHIEVEMENT_DEFS = [
   { id: 'test_pass', icon: '✅', title: 'Godkänt test', desc: 'Klarat ett test med minst 70 %' },
   { id: 'test_perfect', icon: '🏆', title: 'Perfekt!', desc: 'Placerat alla 10 elektroder rätt på ett test' },
   { id: 'test_3x', icon: '🔥', title: 'Ihärdig', desc: 'Klarat test tre gånger' },
+  { id: 'quiz_perfect', icon: '⭐', title: 'Quiz godkänt', desc: 'Alla 10 frågor rätt' },
 ];
 
 function loadAchievements() {
@@ -1023,134 +1075,204 @@ function showScreen(id) {
   document.getElementById(id).classList.add('active');
 }
 
-function goHome() { showScreen('home'); }
+function goHome() { showScreen('home'); updateHomeStars(); }
 function showFilm() { showScreen('film-screen'); }
 
 /* ═══════════════════════════════════════════════════════
-   ANATOMISKA LANDMÄRKEN
+   QUIZ
 ═══════════════════════════════════════════════════════ */
 
-const LANDMARK_INFO = {
-  mklav: {
-    color: '#2c7bb6',
-    title: 'Midklavikulärlinjen',
-    desc: 'En vertikal linje från mitten av klavikeln rakt nedåt. V4 placeras i 5:e revbensmellanrummet längs denna linje — ungefär vid bröstvårtan hos män.'
+const QUIZ_QUESTIONS = [
+  {
+    q: 'Hur många avledningar ingår i ett standard vilo-EKG?',
+    opts: ['8', '10', '12', '16'],
+    correct: 2
   },
-  aax: {
-    color: '#d7191c',
-    title: 'Anteriora axillarlinjen',
-    desc: 'En vertikal linje från den främre axillarvecket (där armens framsida möter bröstkorgen). V5 placeras i samma höjd som V4 längs denna linje.'
+  {
+    q: 'Vilken färg har elektroden som kopplas till vänster arm?',
+    opts: ['Röd', 'Gul', 'Grön', 'Svart'],
+    correct: 1
   },
-  max: {
-    color: '#1a9641',
-    title: 'Mediala axillarlinjen',
-    desc: 'En vertikal linje mitt igenom armhålan. V6 placeras i samma höjd som V4 och V5 längs denna linje.'
+  {
+    q: 'Vilken färg har jordelektroden som placeras på höger vrist?',
+    opts: ['Röd', 'Gul', 'Grön', 'Svart'],
+    correct: 3
   },
-  stern: {
-    color: '#756bb1',
-    title: 'Sternumkant (bröstbenet)',
-    desc: 'Höger sternumkant: V1 placeras i 4:e revbensmellanrummet. Vänster sternumkant: V2 placeras i 4:e revbensmellanrummet. Känn efter sternums kanter som referens.'
+  {
+    q: 'Var placeras V1?',
+    opts: [
+      '3:e revbensmellanrummet vid höger bröstbenskant',
+      '4:e revbensmellanrummet vid höger bröstbenskant',
+      '5:e revbensmellanrummet vid höger bröstbenskant',
+      '4:e revbensmellanrummet vid vänster bröstbenskant'
+    ],
+    correct: 1
   },
-  ics: {
-    color: '#fd8d3c',
-    title: 'Revbensmellanrum (ICS)',
-    desc: '4:e ICS: Känn klavikelns underkant → följ ned 1:a revbenet → mellanrummet nedan = ICS 1. Räkna vidare: ICS 4 är referens för V1 och V2. ICS 5 längs midklavikulärlinjen = V4.'
+  {
+    q: 'Var placeras V4?',
+    opts: [
+      '4:e revbensmellanrummet i midklavikulärlinjen',
+      '4:e revbensmellanrummet i anteriora axillarlinjen',
+      '5:e revbensmellanrummet i midklavikulärlinjen',
+      '5:e revbensmellanrummet i anteriora axillarlinjen'
+    ],
+    correct: 2
   },
-  clav: {
-    color: '#636363',
-    title: 'Klavikeln (nyckelbenet)',
-    desc: 'Utgångspunkt för att hitta midklavikulärlinjen. Känn ut klavikelns mitt — därifrån dras en vertikal linje nedåt. Används även för att identifiera ICS 1 (direkt nedanför klavikeln).'
+  {
+    q: 'Var placeras V3?',
+    opts: [
+      'I samma höjd som V2, längs vänster sternumkant',
+      'I 5:e revbensmellanrummet längs midklavikulärlinjen',
+      'Diagonalt mitt emellan V2 och V4',
+      'Längs anteriora axillarlinjen i höjd med V4'
+    ],
+    correct: 2
+  },
+  {
+    q: 'Var placeras V5?',
+    opts: [
+      'Anteriora axillarlinjen, samma höjd som V4',
+      'Midklavikulärlinjen, samma höjd som V4',
+      'Mediala axillarlinjen, samma höjd som V4',
+      '5:e revbensmellanrummet vid vänster sternumkant'
+    ],
+    correct: 0
+  },
+  {
+    q: 'Vilken anatomisk linje markeras i bilden?',
+    opts: [
+      'Anteriora axillarlinjen',
+      'Mediala axillarlinjen',
+      'Midklavikulärlinjen',
+      'Sternumkanten'
+    ],
+    correct: 2,
+    image: true
+  },
+  {
+    q: 'I vilket läge ska patienten befinna sig under EKG-tagning?',
+    opts: [
+      'Sittande med rak rygg',
+      'Halvliggande med 30° huvudhöjd',
+      'Ryggläge',
+      'Sidoläge'
+    ],
+    correct: 2
+  },
+  {
+    q: 'Var placeras V6?',
+    opts: [
+      'Anteriora axillarlinjen, samma höjd som V4 och V5',
+      'Mediala axillarlinjen, samma höjd som V4 och V5',
+      'Posteriora axillarlinjen, samma höjd som V4 och V5',
+      '6:e revbensmellanrummet i midklavikulärlinjen'
+    ],
+    correct: 1
   }
-};
+];
 
-function showLandmarks() {
-  showScreen('landmarks-screen');
-  buildLandmarkBody();
-  document.getElementById('body-svg-landmarks').setAttribute('viewBox', VB_LANDMARKS.join(' '));
-  showLandmarkInfo(null);
+let quizStep = 0;
+let quizWrong = 0;
+let quizAnswered = false;
+
+function startQuiz() {
+  quizStep = 0;
+  quizWrong = 0;
+  quizAnswered = false;
+  showScreen('quiz-screen');
+  document.getElementById('quiz-result').classList.remove('visible');
+  renderQuizQuestion();
 }
 
-function showLandmarkInfo(id) {
-  const panel = document.getElementById('landmark-info-content');
-  if (!id || !LANDMARK_INFO[id]) {
-    panel.innerHTML = '<div style="font-size:13px;color:var(--text-muted);text-align:center;padding-top:8px;">Tryck på en linje eller punkt för mer information</div>';
-    return;
-  }
-  const info = LANDMARK_INFO[id];
-  panel.innerHTML = `<div class="landmark-info-card">
-    <div class="landmark-info-dot" style="background:${info.color}"></div>
-    <div>
-      <div class="landmark-info-title">${info.title}</div>
-      <div class="landmark-info-desc">${info.desc}</div>
-    </div>
-  </div>`;
-}
+function renderQuizQuestion() {
+  const q = QUIZ_QUESTIONS[quizStep];
+  document.getElementById('quiz-counter').textContent = `${quizStep + 1} / ${QUIZ_QUESTIONS.length}`;
 
-function buildLandmarkBody() {
-  const svg = document.getElementById('body-svg-landmarks');
+  const imageHtml = q.image
+    ? `<div class="quiz-image">${buildQuizImage()}</div>`
+    : '';
 
-  const Y_TOP = 68, Y_BOT = 230;
-  const X_MKL = 188, X_AAX = 202, X_MAX = 210;
-  const X_STERN_R = 155, X_STERN_L = 169;
-  const ICS4_Y = 81, ICS5_Y = 92;
+  const optsHtml = q.opts.map((opt, i) =>
+    `<button class="quiz-opt" onclick="handleQuizAnswer(${i})">${opt}</button>`
+  ).join('');
 
-  svg.innerHTML = `
-    <image href="body.jpg" x="0" y="0" width="320" height="530" preserveAspectRatio="xMidYMid meet"/>
-
-    <!-- ── KLAVIKEL (grå) ── -->
-    <path d="M${X_STERN_R - 3},96 Q108,88 70,95" stroke="#636363" stroke-width="1.5" fill="none" stroke-linecap="round" class="lm-clav" style="cursor:pointer"/>
-    <path d="M${X_STERN_L + 3},96 Q212,88 250,95" stroke="#636363" stroke-width="1.5" fill="none" stroke-linecap="round" class="lm-clav" style="cursor:pointer"/>
-
-    <!-- ── STERNUMKANTER (lila) ── -->
-    <line x1="${X_STERN_R}" y1="${Y_TOP}" x2="${X_STERN_R}" y2="${Y_BOT}" stroke="#756bb1" stroke-width="1.2" stroke-dasharray="4,3" class="lm-stern" style="cursor:pointer"/>
-    <line x1="${X_STERN_L}" y1="${Y_TOP}" x2="${X_STERN_L}" y2="${Y_BOT}" stroke="#756bb1" stroke-width="1.2" stroke-dasharray="4,3" class="lm-stern" style="cursor:pointer"/>
-    <text x="${X_STERN_R - 4}" y="${Y_TOP + 8}" text-anchor="middle" font-size="5" fill="#756bb1" font-weight="700" pointer-events="none">V1</text>
-    <text x="${X_STERN_L + 4}" y="${Y_TOP + 8}" text-anchor="middle" font-size="5" fill="#756bb1" font-weight="700" pointer-events="none">V2</text>
-
-    <!-- ── MIDKLAVIKULÄRLINJE (blå) ── -->
-    <line x1="${X_MKL}" y1="${Y_TOP}" x2="${X_MKL}" y2="${Y_BOT}" stroke="#2c7bb6" stroke-width="1.2" stroke-dasharray="5,3" class="lm-mklav" style="cursor:pointer"/>
-    <text x="${X_MKL + 2}" y="${Y_TOP + 7}" text-anchor="start" font-size="5" fill="#2c7bb6" font-weight="700" pointer-events="none">MCL</text>
-
-    <!-- ── ANTERIORA AXILLARLINJE (röd) ── -->
-    <line x1="${X_AAX}" y1="${Y_TOP + 15}" x2="${X_AAX}" y2="${Y_BOT}" stroke="#d7191c" stroke-width="1.2" stroke-dasharray="5,3" class="lm-aax" style="cursor:pointer"/>
-    <text x="${X_AAX + 2}" y="${Y_TOP + 22}" text-anchor="start" font-size="5" fill="#d7191c" font-weight="700" pointer-events="none">AAL</text>
-
-    <!-- ── MEDIALA AXILLARLINJE (grön) ── -->
-    <line x1="${X_MAX}" y1="${Y_TOP + 28}" x2="${X_MAX}" y2="${Y_BOT}" stroke="#1a9641" stroke-width="1.2" stroke-dasharray="5,3" class="lm-max" style="cursor:pointer"/>
-    <text x="${X_MAX + 2}" y="${Y_TOP + 35}" text-anchor="start" font-size="5" fill="#1a9641" font-weight="700" pointer-events="none">MAL</text>
-
-    <!-- ── ICS MARKERINGAR (orange) ── -->
-    <line x1="110" y1="${ICS4_Y}" x2="245" y2="${ICS4_Y}" stroke="#fd8d3c" stroke-width="1" stroke-dasharray="3,3" class="lm-ics" style="cursor:pointer"/>
-    <text x="108" y="${ICS4_Y - 1}" text-anchor="end" font-size="5" fill="#fd8d3c" font-weight="700" pointer-events="none">ICS 4</text>
-    <line x1="110" y1="${ICS5_Y}" x2="245" y2="${ICS5_Y}" stroke="#fd8d3c" stroke-width="1" stroke-dasharray="3,3" class="lm-ics" style="cursor:pointer"/>
-    <text x="108" y="${ICS5_Y - 1}" text-anchor="end" font-size="5" fill="#fd8d3c" font-weight="700" pointer-events="none">ICS 5</text>
-
-    <!-- ── Skärningspunkter (elektrodpositioner) ── -->
-    <circle cx="${X_STERN_R}" cy="${ICS4_Y}" r="4" fill="white" stroke="#756bb1" stroke-width="1.5"/>
-    <text x="${X_STERN_R}" y="${ICS4_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="4" font-weight="800" fill="#756bb1" pointer-events="none">V1</text>
-    <circle cx="${X_STERN_L}" cy="${ICS4_Y}" r="4" fill="white" stroke="#756bb1" stroke-width="1.5"/>
-    <text x="${X_STERN_L}" y="${ICS4_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="4" font-weight="800" fill="#756bb1" pointer-events="none">V2</text>
-    <circle cx="${X_MKL}" cy="${ICS5_Y}" r="4" fill="white" stroke="#2c7bb6" stroke-width="1.5"/>
-    <text x="${X_MKL}" y="${ICS5_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="4" font-weight="800" fill="#2c7bb6" pointer-events="none">V4</text>
-    <circle cx="${X_AAX}" cy="${ICS5_Y}" r="4" fill="white" stroke="#d7191c" stroke-width="1.5"/>
-    <text x="${X_AAX}" y="${ICS5_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="4" font-weight="800" fill="#d7191c" pointer-events="none">V5</text>
-    <circle cx="${X_MAX}" cy="${ICS5_Y}" r="4" fill="white" stroke="#1a9641" stroke-width="1.5"/>
-    <text x="${X_MAX}" y="${ICS5_Y + 1}" text-anchor="middle" dominant-baseline="middle" font-size="4" font-weight="800" fill="#1a9641" pointer-events="none">V6</text>
+  document.getElementById('quiz-body').innerHTML = `
+    <div class="quiz-question">${q.q}</div>
+    ${imageHtml}
+    <div class="quiz-opts">${optsHtml}</div>
   `;
+}
 
-  /* Attach click handlers */
-  const handlers = { 'lm-mklav': 'mklav', 'lm-aax': 'aax', 'lm-max': 'max', 'lm-stern': 'stern', 'lm-ics': 'ics', 'lm-clav': 'clav' };
-  Object.entries(handlers).forEach(([cls, key]) => {
-    svg.querySelectorAll('.' + cls).forEach(el => {
-      el.addEventListener('click', () => showLandmarkInfo(key));
-      el.addEventListener('touchend', e => { e.preventDefault(); showLandmarkInfo(key); });
-    });
-  });
+function handleQuizAnswer(idx) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+
+  const q = QUIZ_QUESTIONS[quizStep];
+  const buttons = document.querySelectorAll('.quiz-opt');
+  buttons[q.correct].classList.add('correct');
+  if (idx !== q.correct) {
+    buttons[idx].classList.add('wrong');
+    quizWrong++;
+  }
+  buttons.forEach(b => { b.disabled = true; });
+
+  setTimeout(advanceQuiz, 1400);
+}
+
+function advanceQuiz() {
+  quizStep++;
+  quizAnswered = false;
+  if (quizStep >= QUIZ_QUESTIONS.length) {
+    showQuizResult();
+  } else {
+    renderQuizQuestion();
+  }
+}
+
+function showQuizResult() {
+  const passed = quizWrong === 0;
+  document.getElementById('quiz-body').innerHTML = '';
+  document.getElementById('quiz-counter').textContent = `${QUIZ_QUESTIONS.length} / ${QUIZ_QUESTIONS.length}`;
+  document.getElementById('quiz-result-icon').textContent = passed ? '🏆' : '❌';
+  document.getElementById('quiz-result-title').textContent = passed ? 'Godkänt!' : 'Inte godkänt';
+  document.getElementById('quiz-result-score').textContent = passed ? '0 fel' : `${quizWrong} fel`;
+  document.getElementById('quiz-result-sub').textContent = passed
+    ? 'Alla 10 frågor rätt på första försöket!'
+    : 'Alla 10 frågor måste besvaras rätt på första försöket.';
+  document.getElementById('quiz-result').classList.add('visible');
+  if (passed) saveAchievement('quiz_perfect');
+}
+
+function buildQuizImage() {
+  return `<svg width="100%" viewBox="95 55 130 130" preserveAspectRatio="xMidYMid meet" style="display:block;border-radius:10px;">
+    <image href="body.jpg" x="0" y="0" width="320" height="530" preserveAspectRatio="xMidYMid meet"/>
+    <line x1="188" y1="65" x2="188" y2="185" stroke="#2c7bb6" stroke-width="2.5" stroke-dasharray="5,3"/>
+    <circle cx="188" cy="92" r="5" fill="#2c7bb6" opacity="0.85"/>
+    <text x="192" y="72" font-size="7" fill="#2c7bb6" font-weight="700">?</text>
+  </svg>`;
+}
+
+function updateHomeStars() {
+  const unlocked = loadAchievements();
+  const testCard = document.getElementById('star-card-test');
+  const quizCard = document.getElementById('star-card-quiz');
+  if (testCard) {
+    const earned = !!unlocked['test_perfect'];
+    testCard.className = 'star-card' + (earned ? ' earned' : '');
+    testCard.querySelector('.star-card-icon').textContent = earned ? '★' : '☆';
+  }
+  if (quizCard) {
+    const earned = !!unlocked['quiz_perfect'];
+    quizCard.className = 'star-card' + (earned ? ' earned' : '');
+    quizCard.querySelector('.star-card-icon').textContent = earned ? '★' : '☆';
+  }
 }
 
 /* ═══════════════════════════════════════════════════════
    SERVICE WORKER
 ═══════════════════════════════════════════════════════ */
+
+updateHomeStars();
 
 if ('serviceWorker' in navigator) {
   const swPath = location.pathname.replace(/\/[^/]*$/, '') + '/sw.js';
