@@ -79,11 +79,13 @@ const ELECTRODES = [
 - Godkänt = 0 fel; underkänt = ≥1 fel. Alla elektroder måste placeras rätt på första försöket
 - Använder `body.jpg` (inte body-clean.jpg) tills bättre inpainting finns
 
-## Anatomiska landmärken
+## Quiz
 
-- Statisk vy, zoomar direkt till `VB_LANDMARKS` (bröstkorgsområdet)
-- Klickbara linjer/punkter öppnar informationskort i panelen nedtill
-- Koordinater för linjerna baseras på samma SVG-koordinatrymb som elektroderna
+- 10 flervalsfrågor om EKG-teori (anatomi, färger, placering)
+- Fråga 8 visar en SVG-bild med midklavikulärlinjen markerad (inline SVG med body.jpg)
+- Godkänt = 0 fel; underkänt = ≥1 fel. Alla frågor måste besvaras rätt på första försöket
+- `quiz_perfect`-achievement låser upp stjärna på startsidan
+- `QUIZ_QUESTIONS`-arrayen: `{ q, opts[], correct, image? }`
 
 ---
 
@@ -104,10 +106,53 @@ const ELECTRODES = [
 ## Deploy-process
 
 ```bash
-# Bumpa CACHE_NAME i sw.js (t.ex. v23 → v24)
+# Bumpa CACHE_NAME i sw.js (t.ex. v24 → v25)
 git add index.html sw.js
 git commit -m "beskrivning"
 git push origin main
 # GitHub Pages deployar automatiskt från main-branchen
 # Testa i inkognitoläge: https://andersbehrens.github.io/ekgapp/
 ```
+
+---
+
+## Manuell testchecklista
+
+Kör igenom dessa scenarios i **inkognitoläge på mobil (iOS Safari)** efter varje deploy. Inkognito säkerställer att service worker-cachen är ren.
+
+### Startsida
+- [ ] Appen laddas och startsidan visas utan fel
+- [ ] Stjärnorna visas som tomma (☆) om inga achievements är upplåsta
+- [ ] Stjärnorna visas som fyllda (★) med gul bakgrund om achievements är upplåsta
+
+### Träning
+- [ ] Träningsknappen öppnar träningsskärmen
+- [ ] Korten visas ovanför kroppen med rätt elektrodnamn ("Röd elektrod" etc.)
+- [ ] Varje elektrod zoomar in/ut korrekt — bröstavledningar zoomar till bröstkorgen, extremiteter visar helkropp
+- [ ] Zoom-animationen orsakar inget layout-hopp (fötterna ska inte försvinna)
+- [ ] Placerade elektroder visar grön prick; aktiv elektrod pulsar blått
+- [ ] Genomförd träning (alla 10) går tillbaka till startsidan utan fel
+
+### Test
+- [ ] Testknappen öppnar testskärmen med instruktion överst
+- [ ] Instruktionen visar rätt färg/elektrod beroende på om det är extremitet eller bröstavledning
+- [ ] Man kan trycka fel — fel registreras och rätt position markeras grönt ändå
+- [ ] Man kan inte trycka på samma elektrod två gånger
+- [ ] V1–V6 kan tryckas nära varandra utan att fel elektrod väljs (nearest-centre-logik)
+- [ ] "Tryck igen"-knappen startar om testet med ny slumpad ordning och nollställer felräknaren
+- [ ] Godkänt-skärm visas vid 0 fel; underkänt vid ≥1 fel
+- [ ] Stjärnan för Test tänds på startsidan efter godkänt test
+
+### Quiz
+- [ ] Quizknappen öppnar quizskärmen med fråga 1 av 10
+- [ ] Rätt svar markeras grönt, fel svar markeras rött, sedan går det automatiskt vidare
+- [ ] Man kan inte klicka igen efter svar (knapparna inaktiveras)
+- [ ] Fråga 8 visar en bild med en markerad linje
+- [ ] Resultatskärmen visar rätt antal fel
+- [ ] "Försök igen" nollställer allt och börjar om från fråga 1
+- [ ] Stjärnan för Quiz tänds på startsidan efter godkänt quiz (0 fel)
+
+### Allmänt
+- [ ] Tillbaka-pilen (‹) från alla skärmar tar tillbaka till startsidan
+- [ ] Appen fungerar offline efter första laddning (stäng av WiFi och ladda om)
+- [ ] Inga JavaScript-fel i konsolen (Safari → Develop → Web Inspector)
