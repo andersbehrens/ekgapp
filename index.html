@@ -465,6 +465,40 @@
 
     /* ── Hemskärms-stjärnor ── */
     .star-strip { display: flex; gap: 12px; margin-bottom: 24px; }
+
+    /* ── Install banner ── */
+    .install-banner {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      background: var(--accent-light);
+      border: 1.5px solid #bfcfea;
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-top: 16px;
+      cursor: pointer;
+    }
+    .install-banner.visible { display: flex; }
+    .install-banner-icon { font-size: 24px; flex-shrink: 0; }
+    .install-banner-text { flex: 1; }
+    .install-banner-text strong { display: block; font-size: 15px; color: var(--accent); }
+    .install-banner-text span { font-size: 13px; color: var(--text-muted); }
+    .install-banner-arrow { font-size: 20px; color: var(--accent); }
+
+    /* ── iOS install hint ── */
+    .ios-hint {
+      display: none;
+      margin-top: 16px;
+      background: #fffbeb;
+      border: 1.5px solid #f0b429;
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      font-size: 13px;
+      color: #7a4f00;
+      line-height: 1.5;
+      text-align: center;
+    }
+    .ios-hint.visible { display: block; }
     .star-card {
       flex: 1;
       background: var(--surface);
@@ -547,6 +581,19 @@
         </div>
         <span class="menu-btn-arrow">›</span>
       </button>
+    </div>
+
+    <div class="install-banner" id="install-banner" onclick="triggerInstall()">
+      <div class="install-banner-icon">📲</div>
+      <div class="install-banner-text">
+        <strong>Installera appen</strong>
+        <span>Lägg till på hemskärmen för enklare åtkomst</span>
+      </div>
+      <span class="install-banner-arrow">›</span>
+    </div>
+
+    <div class="ios-hint" id="ios-hint">
+      Tryck på <strong>delaknappen</strong> (⎙) längst ned i Safari<br>→ välj <strong>Lägg till på hemskärmen</strong>
     </div>
   </div>
 
@@ -1226,10 +1273,46 @@ function updateHomeStars() {
 }
 
 /* ═══════════════════════════════════════════════════════
+   INSTALL PROMPT
+═══════════════════════════════════════════════════════ */
+
+let _installEvent = null;
+
+function initInstallPrompt() {
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true;
+  if (isStandalone) return;
+
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isIOSSafari = isIOS && /WebKit/.test(navigator.userAgent) && !/CriOS|FxiOS/.test(navigator.userAgent);
+
+  if (isIOSSafari) {
+    document.getElementById('ios-hint').classList.add('visible');
+    return;
+  }
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    _installEvent = e;
+    document.getElementById('install-banner').classList.add('visible');
+  });
+}
+
+function triggerInstall() {
+  if (!_installEvent) return;
+  _installEvent.prompt();
+  _installEvent.userChoice.then(() => {
+    _installEvent = null;
+    document.getElementById('install-banner').classList.remove('visible');
+  });
+}
+
+/* ═══════════════════════════════════════════════════════
    SERVICE WORKER
 ═══════════════════════════════════════════════════════ */
 
 updateHomeStars();
+initInstallPrompt();
 
 if ('serviceWorker' in navigator) {
   const swPath = location.pathname.replace(/\/[^/]*$/, '') + '/sw.js';
