@@ -106,12 +106,13 @@ const ELECTRODES = [
 ## Deploy-process
 
 ```bash
-# Bumpa CACHE_NAME i sw.js (t.ex. v24 → v25)
+# Bumpa CACHE_NAME i sw.js (t.ex. v28 → v29)
 git add index.html sw.js
 git commit -m "beskrivning"
 git push origin main
 # GitHub Pages deployar automatiskt från main-branchen
-# Testa i inkognitoläge: https://andersbehrens.github.io/ekgapp/
+# Testa i vanligt läge (ej inkognito): https://andersbehrens.github.io/ekgapp/
+# OBS: Chrome blockerar PWA-installation i inkognitoläge
 ```
 
 ---
