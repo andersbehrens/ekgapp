@@ -431,48 +431,6 @@
     svg[data-mode="train"] .electrode-target[data-state="active"] { opacity: 1; pointer-events: all; }
     svg[data-mode="train"] .electrode-target[data-state="done"] { opacity: 1; pointer-events: none; }
 
-    /* ── Landmarks legend ── */
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      color: var(--text-muted);
-      cursor: pointer;
-      padding: 2px 4px;
-      border-radius: 4px;
-    }
-    .legend-item:active { background: var(--border); }
-    .legend-item span {
-      display: inline-block;
-      width: 20px;
-      height: 3px;
-      border-radius: 2px;
-      flex-shrink: 0;
-    }
-    .landmark-info-card {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-    }
-    .landmark-info-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      flex-shrink: 0;
-      margin-top: 4px;
-    }
-    .landmark-info-title {
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-    .landmark-info-desc {
-      font-size: 13px;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
-
     /* ── Quiz ── */
     .quiz-question {
       background: var(--surface);
@@ -785,7 +743,6 @@ function buildBody(svgEl, mode) {
 
 const VB_FULL  = [40, 0, 240, 490];
 const VB_TORSO     = [108, 32, 138, 125];
-const VB_LANDMARKS = [65, 55, 200, 200]; /* chest crop for landmarks screen */
 
 const _vbNow = {};   // svgId → current [x,y,w,h]
 const _vbRaf = {};   // svgId → rAF handle
@@ -1027,7 +984,7 @@ function saveTestScore(score, total) {
   history.push({ score, total, date: new Date().toISOString() });
   localStorage.setItem('ekg_test_history', JSON.stringify(history));
 
-  const passes = history.filter(h => h.score / h.total >= 0.7).length;
+  const passes = history.filter(h => h.score === h.total).length;
   if (passes >= 3) saveAchievement('test_3x');
 }
 
